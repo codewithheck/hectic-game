@@ -1,0 +1,221 @@
+/**
+ * International Draughts Renderer Styles
+ * Handles animations and visual transitions for the game renderer
+ * @author codewithheck
+ * Created: 2025-06-16 20:05:12 UTC
+ */
+/* Piece Movement Animation */
+@keyframes movePiece {
+    0% {
+        transform: translate(var(--start-x), var(--start-y));
+    }
+    100% {
+        transform: translate(var(--end-x), var(--end-y));
+    }
+}
+
+/* Piece Capture Animation */
+@keyframes capturePiece {
+    0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2) rotate(180deg);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(0) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* King Promotion Animation */
+@keyframes promoteToKing {
+    0% {
+        transform: scale(1) rotate(0deg);
+    }
+    50% {
+        transform: scale(1.2) rotate(180deg);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    }
+    100% {
+        transform: scale(1) rotate(360deg);
+    }
+}
+
+/* Piece Hover Animation */
+@keyframes pieceHover {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-2px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+/* Animation Classes */
+.piece-moving {
+    position: absolute;
+    z-index: 100;
+    pointer-events: none;
+    animation: movePiece var(--move-duration, 300ms) cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+
+.piece-capturing {
+    animation: capturePiece var(--capture-duration, 300ms) cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform, opacity;
+}
+
+.piece-promoting {
+    animation: promoteToKing var(--promote-duration, 500ms) cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+
+.piece-hovering {
+    animation: pieceHover 1s ease-in-out infinite;
+}
+
+/* Multiple Capture Chain Animation */
+.capture-chain {
+    position: relative;
+}
+
+.capture-chain::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(231, 76, 60, 0.6) 50%, 
+        transparent 100%
+    );
+    transform-origin: left center;
+    transform: translate(-50%, -50%) scaleX(0);
+    animation: captureChain 0.3s forwards;
+}
+
+@keyframes captureChain {
+    0% {
+        transform: translate(-50%, -50%) scaleX(0);
+    }
+    100% {
+        transform: translate(-50%, -50%) scaleX(1);
+    }
+}
+
+/* Highlight Animations */
+@keyframes highlightSquare {
+    0% {
+        box-shadow: inset 0 0 0 2px rgba(52, 152, 219, 0);
+    }
+    50% {
+        box-shadow: inset 0 0 0 2px rgba(52, 152, 219, 0.6);
+    }
+    100% {
+        box-shadow: inset 0 0 0 2px rgba(52, 152, 219, 0);
+    }
+}
+
+.square-highlight {
+    animation: highlightSquare 1s ease-in-out infinite;
+}
+
+/* Performance Optimizations */
+.piece-moving,
+.piece-capturing,
+.piece-promoting {
+    backface-visibility: hidden;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+}
+
+/* Accessibility - Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .piece-moving {
+        animation: none;
+        transition: transform var(--move-duration, 300ms) linear;
+    }
+
+    .piece-capturing {
+        animation: none;
+        transition: transform var(--capture-duration, 300ms) linear,
+                    opacity var(--capture-duration, 300ms) linear;
+    }
+
+    .piece-promoting {
+        animation: none;
+        transition: transform var(--promote-duration, 500ms) linear;
+    }
+
+    .piece-hovering {
+        animation: none;
+    }
+
+    .capture-chain::after {
+        animation: none;
+        transition: transform var(--capture-duration, 300ms) linear;
+    }
+
+    .square-highlight {
+        animation: none;
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .capture-chain::after {
+        background: #000;
+        height: 3px;
+    }
+
+    .square-highlight {
+        animation: none;
+        box-shadow: inset 0 0 0 3px #000;
+    }
+
+    .piece-promoting {
+        box-shadow: 0 0 0 3px #000;
+    }
+}
+
+/* Mobile Touch Device Optimizations */
+@media (hover: none) {
+    .piece-hovering {
+        animation: none;
+    }
+}
+
+/* Variable Declarations for JavaScript Control */
+:root {
+    --move-duration: 300ms;
+    --capture-duration: 300ms;
+    --promote-duration: 500ms;
+    --highlight-color: rgba(52, 152, 219, 0.6);
+    --capture-color: rgba(231, 76, 60, 0.6);
+    --promotion-glow: rgba(255, 215, 0, 0.6);
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --highlight-color: rgba(52, 152, 219, 0.8);
+        --capture-color: rgba(231, 76, 60, 0.8);
+        --promotion-glow: rgba(255, 215, 0, 0.8);
+    }
+
+    .capture-chain::after {
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(231, 76, 60, 0.8) 50%, 
+            transparent 100%
+        );
+    }
+}

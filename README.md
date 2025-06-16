@@ -2,7 +2,7 @@
 10x10 draught game with mirror flipped horizontal board
 # Hectic - International Draughts Game
 
-![Board Preview](assets/images/flipped_board.jpg)
+![Board Preview](https://github.com/codewithheck/hectic-game/blob/main/game-app/assets/images/flipped_board.jpg)
 
 ## Overview
 Modern implementation of International Draughts (10x10) with AI powered by neural networks and advanced game analysis. Created by [@codewithheck](https://github.com/codewithheck).

@@ -1,1 +1,210 @@
-
+{
+    "metadata": {
+        "created": "2025-06-16 20:43:43",
+        "author": "codewithheck",
+        "version": "1.0.0",
+        "description": "International Draughts (10x10) Opening Book",
+        "format": {
+            "fen": "Standard FEN notation",
+            "name": "Opening name",
+            "moves": "Sequence of moves in numerical notation",
+            "frequency": "Usage frequency in master games (percentage)",
+            "winRate": "Win percentage for White",
+            "drawRate": "Draw percentage",
+            "variations": "Alternative move sequences"
+        }
+    },
+    "openings": [
+        {
+            "name": "Classical Opening",
+            "fen": "W:W31,32,33,34,35,36,37,38,39,40,41,42,43,44,45:B6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
+            "moves": "33-28",
+            "frequency": 28.5,
+            "winRate": 42.3,
+            "drawRate": 35.8,
+            "variations": [
+                {
+                    "name": "Classical - Central Variation",
+                    "moves": "33-28 17-22 28x17 11x22",
+                    "frequency": 15.2,
+                    "winRate": 44.1,
+                    "drawRate": 33.7
+                },
+                {
+                    "name": "Classical - Short Wing",
+                    "moves": "33-28 19-23 28x19 14x23",
+                    "frequency": 13.3,
+                    "winRate": 40.5,
+                    "drawRate": 37.2
+                }
+            ]
+        },
+        {
+            "name": "Roozenburg Opening",
+            "fen": "W:W31,32,33,34,35,36,37,38,39,40,41,42,43,44,45:B6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
+            "moves": "32-28",
+            "frequency": 23.7,
+            "winRate": 41.8,
+            "drawRate": 38.4,
+            "variations": [
+                {
+                    "name": "Roozenburg - Standard Line",
+                    "moves": "32-28 18-23 28x19 14x23",
+                    "frequency": 12.8,
+                    "winRate": 43.2,
+                    "drawRate": 36.5
+                },
+                {
+                    "name": "Roozenburg - Alternative",
+                    "moves": "32-28 17-21 28x17 11x22",
+                    "frequency": 10.9,
+                    "winRate": 40.4,
+                    "drawRate": 40.3
+                }
+            ]
+        },
+        {
+            "name": "Springer Opening",
+            "fen": "W:W31,32,33,34,35,36,37,38,39,40,41,42,43,44,45:B6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
+            "moves": "34-30",
+            "frequency": 19.8,
+            "winRate": 40.9,
+            "drawRate": 39.2,
+            "variations": [
+                {
+                    "name": "Springer - Main Line",
+                    "moves": "34-30 20-25 30-24 19x30 35x24",
+                    "frequency": 11.3,
+                    "winRate": 41.7,
+                    "drawRate": 38.9
+                },
+                {
+                    "name": "Springer - Alternative",
+                    "moves": "34-30 17-22 30-25 22x31 36x27",
+                    "frequency": 8.5,
+                    "winRate": 40.1,
+                    "drawRate": 39.5
+                }
+            ]
+        },
+        {
+            "name": "Raphael Opening",
+            "fen": "W:W31,32,33,34,35,36,37,38,39,40,41,42,43,44,45:B6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
+            "moves": "31-27",
+            "frequency": 15.4,
+            "winRate": 39.7,
+            "drawRate": 41.5,
+            "variations": [
+                {
+                    "name": "Raphael - Standard",
+                    "moves": "31-27 17-21 27x16 11x22",
+                    "frequency": 8.2,
+                    "winRate": 40.3,
+                    "drawRate": 40.8
+                },
+                {
+                    "name": "Raphael - Modern",
+                    "moves": "31-27 19-23 27x18 12x23",
+                    "frequency": 7.2,
+                    "winRate": 39.1,
+                    "drawRate": 42.2
+                }
+            ]
+        },
+        {
+            "name": "Weiss Opening",
+            "fen": "W:W31,32,33,34,35,36,37,38,39,40,41,42,43,44,45:B6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
+            "moves": "35-30",
+            "frequency": 12.6,
+            "winRate": 38.9,
+            "drawRate": 42.8,
+            "variations": [
+                {
+                    "name": "Weiss - Classical",
+                    "moves": "35-30 20-25 30-24 19x30 35x24",
+                    "frequency": 6.8,
+                    "winRate": 39.4,
+                    "drawRate": 41.9
+                },
+                {
+                    "name": "Weiss - Modern",
+                    "moves": "35-30 17-22 30-25 22x31 36x27",
+                    "frequency": 5.8,
+                    "winRate": 38.4,
+                    "drawRate": 43.7
+                }
+            ]
+        },
+        {
+            "name": "Keller Opening",
+            "fen": "W:W31,32,33,34,35,36,37,38,39,40,41,42,43,44,45:B6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
+            "moves": "33-29",
+            "frequency": 8.9,
+            "winRate": 38.5,
+            "drawRate": 43.2,
+            "variations": [
+                {
+                    "name": "Keller - Standard",
+                    "moves": "33-29 19-23 29x18 12x23",
+                    "frequency": 4.7,
+                    "winRate": 39.1,
+                    "drawRate": 42.5
+                },
+                {
+                    "name": "Keller - Alternative",
+                    "moves": "33-29 17-22 29x18 12x23",
+                    "frequency": 4.2,
+                    "winRate": 37.9,
+                    "drawRate": 43.9
+                }
+            ]
+        },
+        {
+            "name": "Van der Sluis Opening",
+            "fen": "W:W31,32,33,34,35,36,37,38,39,40,41,42,43,44,45:B6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",
+            "moves": "32-27",
+            "frequency": 7.8,
+            "winRate": 37.8,
+            "drawRate": 44.1,
+            "variations": [
+                {
+                    "name": "Van der Sluis - Main Line",
+                    "moves": "32-27 19-23 27x18 12x23",
+                    "frequency": 4.1,
+                    "winRate": 38.2,
+                    "drawRate": 43.7
+                },
+                {
+                    "name": "Van der Sluis - Alternative",
+                    "moves": "32-27 17-21 27x16 11x22",
+                    "frequency": 3.7,
+                    "winRate": 37.4,
+                    "drawRate": 44.5
+                }
+            ]
+        }
+    ],
+    "traps": [
+        {
+            "name": "Classical Trap",
+            "moves": "33-28 17-22 28x17 11x22 31-27 22x31 36x27",
+            "warning": "Black can force a winning position with 16-21 27x16 18-22",
+            "avoidance": "White should play 39-33 instead of 31-27"
+        },
+        {
+            "name": "Roozenburg Trap",
+            "moves": "32-28 18-23 28x19 14x23 37-32 10-14",
+            "warning": "Black can win material with 23-29 34x23 13-19 24x13 8x50",
+            "avoidance": "White should play 34-30 instead of 37-32"
+        }
+    ],
+    "statistics": {
+        "totalGames": 125847,
+        "whiteWins": 40.8,
+        "blackWins": 18.9,
+        "draws": 40.3,
+        "averageGameLength": 52,
+        "mostCommonLength": 48,
+        "sourceGames": "Master Database 2020-2025"
+    }
+}

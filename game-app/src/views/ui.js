@@ -1,11 +1,3 @@
-
-/**
- * International Draughts UI Implementation
- * Handles game controls, move history, and game status
- * @author codewithheck
- * Created: 2025-06-16 19:45:00 UTC
- */
-
 import { Game } from '../engine/game.js';
 import { Board } from './board.js';
 import {
@@ -14,6 +6,7 @@ import {
     DOM_IDS,
     FEN
 } from '../engine/constants.js';
+import { createElement } from '../utils/dom-helpers.js';
 
 export class UI {
     constructor(container) {
@@ -33,43 +26,37 @@ export class UI {
 
     createElements() {
         // Create main container
-        this.gameContainer = document.createElement('div');
-        this.gameContainer.className = 'game-container';
+        this.gameContainer = createElement('div', { class: 'game-container' });
 
         // Create game info section
-        this.gameInfo = document.createElement('div');
-        this.gameInfo.className = 'game-info';
+        this.gameInfo = createElement('div', { class: 'game-info' });
 
         // Create status display
-        this.statusDisplay = document.createElement('div');
-        this.statusDisplay.className = 'status-display';
-        this.statusDisplay.id = DOM_IDS.STATUS_DISPLAY;
+        this.statusDisplay = createElement('div', { class: 'status-display', id: DOM_IDS.STATUS_DISPLAY });
 
         // Create controls
-        this.controls = document.createElement('div');
-        this.controls.className = 'game-controls';
+        this.controls = createElement('div', { class: 'game-controls' });
 
-        this.newGameButton = document.createElement('button');
-        this.newGameButton.textContent = 'New Game';
-        this.newGameButton.className = 'control-button';
-        this.newGameButton.id = DOM_IDS.NEW_GAME_BUTTON;
+        this.newGameButton = createElement('button', {
+            class: 'control-button',
+            id: DOM_IDS.NEW_GAME_BUTTON
+        }, { textContent: 'New Game' });
 
-        this.undoButton = document.createElement('button');
-        this.undoButton.textContent = 'Undo';
-        this.undoButton.className = 'control-button';
-        this.undoButton.id = DOM_IDS.UNDO_BUTTON;
-        this.undoButton.disabled = true;
+        this.undoButton = createElement('button', {
+            class: 'control-button',
+            id: DOM_IDS.UNDO_BUTTON,
+            disabled: true
+        }, { textContent: 'Undo' });
 
         // Create move history
-        this.moveHistoryContainer = document.createElement('div');
-        this.moveHistoryContainer.className = 'move-history-container';
+        this.moveHistoryContainer = createElement('div', { class: 'move-history-container' });
         
-        this.moveHistoryTitle = document.createElement('h3');
-        this.moveHistoryTitle.textContent = 'Move History';
+        this.moveHistoryTitle = createElement('h3', {}, { textContent: 'Move History' });
         
-        this.moveHistoryList = document.createElement('div');
-        this.moveHistoryList.className = 'move-history';
-        this.moveHistoryList.id = DOM_IDS.MOVE_HISTORY;
+        this.moveHistoryList = createElement('div', {
+            class: 'move-history',
+            id: DOM_IDS.MOVE_HISTORY
+        });
 
         // Assemble UI
         this.controls.appendChild(this.newGameButton);
@@ -87,8 +74,7 @@ export class UI {
     }
 
     createBoard() {
-        const boardContainer = document.createElement('div');
-        boardContainer.className = 'board-container';
+        const boardContainer = createElement('div', { class: 'board-container' });
         this.gameContainer.appendChild(boardContainer);
 
         this.board = new Board(boardContainer);
@@ -239,8 +225,7 @@ export class UI {
             const isWhiteMove = i % 2 === 0;
             
             if (isWhiteMove) {
-                const moveDiv = document.createElement('div');
-                moveDiv.className = 'move-entry';
+                const moveDiv = createElement('div', { class: 'move-entry' });
                 moveDiv.innerHTML = `${moveNumber}. ${this.moveHistory[i].notation}`;
                 
                 if (this.moveHistory[i + 1]) {

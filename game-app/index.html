@@ -1,103 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>International Draughts</title>
-    <link rel="stylesheet" href="css/style.css">
-    <!-- html2canvas from local vendors directory -->
-    <script src="vendors/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="view/styles/style.css">
+    <link rel="stylesheet" href="view/styles/board.css">
+    <link rel="stylesheet" href="view/styles/renderer.css">
+    <link rel="stylesheet" href="view/styles/settings.css">
+    <link rel="stylesheet" href="view/styles/notification.css">
+    <link rel="stylesheet" href="view/styles/history.css">
 </head>
 <body>
     <div class="game-container">
-        <!-- Left Panel: Game Controls -->
-        <div class="control-panel">
-            <div class="difficulty-selector">
-                <h3>AI Difficulty</h3>
-                <select id="difficulty-level">
-                    <option value="1">Beginner</option>
-                    <option value="2">Easy</option>
-                    <option value="3">Intermediate</option>
-                    <option value="4">Advanced</option>
-                    <option value="5">Expert</option>
-                    <option value="6">Grandmaster</option>
-                </select>
-            </div>
-
-            <div class="game-options">
-                <h3>Game Options</h3>
-                <label>
-                    <input type="checkbox" id="max-capture-rule">
-                    Maximum Capture Rule
-                </label>
-                <label>
-                    <input type="checkbox" id="time-control">
-                    60s Time Control
-                </label>
-            </div>
-
-            <div class="position-controls">
-                <h3>Position</h3>
-                <button id="edit-mode">Edit Position</button>
-                <button id="import-fen">Import FEN</button>
-                <button id="export-fen">Export FEN</button>
-                <div class="png-controls">
-                    <button id="save-png">Save as PNG</button>
-                    <input type="file" id="load-png" accept="image/png">
-                    <label for="load-png" class="file-label">Load from PNG</label>
-                </div>
-            </div>
-        </div>
-
-        <!-- Center: Main Game Board -->
-        <div class="game-board-container">
-            <div class="player-info top">
-                <span class="player-name">Black</span>
-                <span class="timer" id="black-timer">01:00</span>
-            </div>
-
-            <div id="game-board" class="game-board"></div>
-
-            <div class="player-info bottom">
-                <span class="player-name">White</span>
-                <span class="timer" id="white-timer">01:00</span>
-            </div>
-
+        <!-- Header Section -->
+        <header class="game-header">
+            <h1>International Draughts</h1>
             <div class="game-controls">
-                <button id="first-move">⟨⟨</button>
-                <button id="prev-move">⟨</button>
-                <button id="undo">Undo</button>
-                <button id="redo">Redo</button>
-                <button id="next-move">⟩</button>
-                <button id="last-move">⟩⟩</button>
+                <button id="newGameBtn" class="control-button">New Game</button>
+                <button id="settingsBtn" class="control-button">Settings</button>
             </div>
-        </div>
+        </header>
 
-        <!-- Right Panel: Game Information -->
-        <div class="info-panel">
-            <div class="move-log">
-                <h3>Move Log</h3>
-                <div id="move-history" class="scrollable"></div>
-            </div>
-
-            <div class="analysis">
-                <h3>Analysis</h3>
-                <div class="evaluation">
-                    <span>Best Move: </span>
-                    <span id="best-move">--</span>
+        <!-- Main Game Section -->
+        <main class="game-main">
+            <!-- Left Panel - Game Info -->
+            <div class="game-info-panel">
+                <div class="player-info" id="player1Info">
+                    <span class="player-name">Player 1</span>
+                    <span class="player-score">Pieces: <span id="player1Score">0</span></span>
                 </div>
-                <div class="evaluation">
-                    <span>Score: </span>
-                    <span id="eval-score">0.0</span>
+                
+                <!-- Game Status -->
+                <div class="game-status" id="gameStatus">
+                    White to move
+                </div>
+
+                <div class="player-info" id="player2Info">
+                    <span class="player-name">Player 2</span>
+                    <span class="player-score">Pieces: <span id="player2Score">0</span></span>
                 </div>
             </div>
-        </div>
+
+            <!-- Center - Game Board -->
+            <div class="board-container">
+                <div id="gameBoard" class="game-board"></div>
+            </div>
+
+            <!-- Right Panel - Move History -->
+            <div class="history-container" id="moveHistory"></div>
+        </main>
     </div>
 
-    <!-- Hidden canvas for PNG processing -->
-    <canvas id="png-processor" style="display: none;"></canvas>
-
-    <!-- Main application script -->
     <script type="module" src="src/main.js"></script>
 </body>
 </html>

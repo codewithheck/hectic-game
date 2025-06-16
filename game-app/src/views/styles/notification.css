@@ -1,0 +1,249 @@
+/**
+ * International Draughts Notification System Styles
+ * @author codewithheck
+ * Created: 2025-06-16 20:01:42 UTC
+ */
+
+.notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    max-width: 350px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.notification {
+    background-color: #fff;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 12px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    opacity: 0;
+    transform: translateX(100%);
+    pointer-events: auto;
+    border-left: 4px solid transparent;
+}
+
+.notification-show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.notification-hide {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+.notification-animate {
+    transition: all 0.3s ease;
+}
+
+/* Notification Types */
+.notification-success {
+    border-left-color: #2ecc71;
+}
+
+.notification-warning {
+    border-left-color: #f1c40f;
+}
+
+.notification-error {
+    border-left-color: #e74c3c;
+}
+
+.notification-info {
+    border-left-color: #3498db;
+}
+
+/* Icons */
+.notification-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-success .notification-icon {
+    color: #2ecc71;
+}
+
+.notification-warning .notification-icon {
+    color: #f1c40f;
+}
+
+.notification-error .notification-icon {
+    color: #e74c3c;
+}
+
+.notification-info .notification-icon {
+    color: #3498db;
+}
+
+.notification-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Content */
+.notification-content {
+    flex-grow: 1;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: #2c3e50;
+    margin-right: 8px;
+    word-break: break-word;
+}
+
+/* Close Button */
+.notification-close {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    color: #95a5a6;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.notification-close:hover {
+    opacity: 1;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+    .notification {
+        background-color: #2d2d2d;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .notification-content {
+        color: #ecf0f1;
+    }
+
+    .notification-close {
+        color: #bdc3c7;
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .notification {
+        border: 2px solid #000;
+        box-shadow: none;
+    }
+
+    .notification-success {
+        border-left-color: #006400;
+    }
+
+    .notification-warning {
+        border-left-color: #b8860b;
+    }
+
+    .notification-error {
+        border-left-color: #8b0000;
+    }
+
+    .notification-info {
+        border-left-color: #00008b;
+    }
+
+    .notification-content {
+        color: #000;
+    }
+
+    .notification-close {
+        color: #000;
+    }
+
+    .notification-success .notification-icon {
+        color: #006400;
+    }
+
+    .notification-warning .notification-icon {
+        color: #b8860b;
+    }
+
+    .notification-error .notification-icon {
+        color: #8b0000;
+    }
+
+    .notification-info .notification-icon {
+        color: #00008b;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .notification-animate {
+        transition: none;
+    }
+
+    .notification-show {
+        transform: none;
+    }
+
+    .notification-hide {
+        transform: none;
+    }
+}
+
+/* Mobile Optimizations */
+@media (max-width: 480px) {
+    .notification-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+
+    .notification {
+        padding: 10px 12px;
+    }
+
+    .notification-content {
+        font-size: 0.9rem;
+    }
+}
+
+/* Bottom Position */
+.notification-container[data-position="bottom"] {
+    top: auto;
+    bottom: 20px;
+}
+
+/* RTL Support */
+[dir="rtl"] .notification-container {
+    right: auto;
+    left: 20px;
+}
+
+[dir="rtl"] .notification {
+    border-left: none;
+    border-right: 4px solid transparent;
+    transform: translateX(-100%);
+}
+
+[dir="rtl"] .notification-show {
+    transform: translateX(0);
+}
+
+[dir="rtl"] .notification-hide {
+    transform: translateX(-100%);
+}

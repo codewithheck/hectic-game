@@ -723,4 +723,3 @@ export class AI {
                (piece === PIECE.BLACK && row === BOARD_SIZE - 1);
     }
 }
-}

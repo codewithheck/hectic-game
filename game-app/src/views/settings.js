@@ -5,6 +5,8 @@
  * Created: 2025-06-16 19:54:53 UTC
  */
 
+import { createElement } from '../utils/dom-helpers.js';
+
 export class Settings {
     constructor() {
         this.storageKey = 'draughts-settings';
@@ -21,10 +23,6 @@ export class Settings {
         this.callbacks = new Map();
     }
 
-    /**
-     * Loads settings from localStorage
-     * @returns {Object} Settings object
-     */
     loadSettings() {
         try {
             const stored = localStorage.getItem(this.storageKey);
@@ -35,9 +33,6 @@ export class Settings {
         }
     }
 
-    /**
-     * Saves current settings to localStorage
-     */
     saveSettings() {
         try {
             localStorage.setItem(this.storageKey, JSON.stringify(this.settings));
@@ -47,20 +42,10 @@ export class Settings {
         }
     }
 
-    /**
-     * Gets a setting value
-     * @param {string} key Setting key
-     * @returns {*} Setting value
-     */
     get(key) {
         return this.settings[key];
     }
 
-    /**
-     * Sets a setting value
-     * @param {string} key Setting key
-     * @param {*} value Setting value
-     */
     set(key, value) {
         if (this.settings[key] !== value) {
             this.settings[key] = value;
@@ -68,21 +53,13 @@ export class Settings {
         }
     }
 
-    /**
-     * Resets settings to defaults
-     */
     resetToDefaults() {
         this.settings = { ...this.defaults };
         this.saveSettings();
     }
 
-    /**
-     * Creates the settings UI
-     * @returns {HTMLElement} Settings panel element
-     */
     createSettingsPanel() {
-        const panel = document.createElement('div');
-        panel.className = 'settings-panel';
+        const panel = createElement('div', { class: 'settings-panel' });
 
         // Highlight Moves toggle
         const highlightMovesContainer = this.createToggleSetting(
@@ -143,102 +120,67 @@ export class Settings {
         panel.appendChild(notationContainer);
 
         // Reset button
-        const resetButton = document.createElement('button');
-        resetButton.className = 'settings-reset-button';
-        resetButton.textContent = 'Reset to Defaults';
-        resetButton.onclick = () => this.resetToDefaults();
+        const resetButton = createElement('button', {
+            class: 'settings-reset-button'
+        }, {
+            textContent: 'Reset to Defaults',
+            onclick: () => this.resetToDefaults()
+        });
         panel.appendChild(resetButton);
 
         return panel;
     }
 
-    /**
-     * Creates a toggle setting UI element
-     * @param {string} key Setting key
-     * @param {string} label Setting label
-     * @param {string} description Setting description
-     * @returns {HTMLElement} Setting container element
-     */
     createToggleSetting(key, label, description) {
-        const container = document.createElement('div');
-        container.className = 'settings-item';
+        const container = createElement('div', { class: 'settings-item' });
 
-        const labelElement = document.createElement('label');
-        labelElement.className = 'settings-label';
-
-        const toggle = document.createElement('input');
-        toggle.type = 'checkbox';
+        const toggle = createElement('input', {
+            type: 'checkbox'
+        });
         toggle.checked = this.settings[key];
         toggle.onchange = () => this.set(key, toggle.checked);
 
-        const textContainer = document.createElement('div');
-        textContainer.className = 'settings-text';
+        const title = createElement('span', { class: 'settings-title' }, { textContent: label });
+        const desc = createElement('span', { class: 'settings-description' }, { textContent: description });
 
-        const title = document.createElement('span');
-        title.className = 'settings-title';
-        title.textContent = label;
-
-        const desc = document.createElement('span');
-        desc.className = 'settings-description';
-        desc.textContent = description;
-
+        const textContainer = createElement('div', { class: 'settings-text' });
         textContainer.appendChild(title);
         textContainer.appendChild(desc);
+
+        const labelElement = createElement('label', { class: 'settings-label' });
         labelElement.appendChild(toggle);
         labelElement.appendChild(textContainer);
+
         container.appendChild(labelElement);
 
         return container;
     }
 
-    /**
-     * Creates a select setting UI element
-     * @param {string} key Setting key
-     * @param {string} label Setting label
-     * @param {string} description Setting description
-     * @param {Object} options Setting options
-     * @returns {HTMLElement} Setting container element
-     */
     createSelectSetting(key, label, description, options) {
-        const container = document.createElement('div');
-        container.className = 'settings-item';
+        const container = createElement('div', { class: 'settings-item' });
 
-        const textContainer = document.createElement('div');
-        textContainer.className = 'settings-text';
+        const title = createElement('span', { class: 'settings-title' }, { textContent: label });
+        const desc = createElement('span', { class: 'settings-description' }, { textContent: description });
 
-        const title = document.createElement('span');
-        title.className = 'settings-title';
-        title.textContent = label;
+        const textContainer = createElement('div', { class: 'settings-text' });
+        textContainer.appendChild(title);
+        textContainer.appendChild(desc);
 
-        const desc = document.createElement('span');
-        desc.className = 'settings-description';
-        desc.textContent = description;
-
-        const select = document.createElement('select');
-        select.className = 'settings-select';
+        const select = createElement('select', { class: 'settings-select' });
         select.value = this.settings[key];
         select.onchange = () => this.set(key, select.value);
 
         for (const [value, text] of Object.entries(options)) {
-            const option = document.createElement('option');
-            option.value = value;
-            option.textContent = text;
+            const option = createElement('option', { value }, { textContent: text });
             select.appendChild(option);
         }
 
-        textContainer.appendChild(title);
-        textContainer.appendChild(desc);
         container.appendChild(textContainer);
         container.appendChild(select);
 
         return container;
     }
 
-    /**
-     * Adds a settings change listener
-     * @param {string} event Event name
-     * @param {Function} callback Callback function
-     */
     addListener(event, callback) {
         if (!this.callbacks.has(event)) {
             this.callbacks.set(event, new Set());
@@ -246,22 +188,12 @@ export class Settings {
         this.callbacks.get(event).add(callback);
     }
 
-    /**
-     * Removes a settings change listener
-     * @param {string} event Event name
-     * @param {Function} callback Callback function
-     */
     removeListener(event, callback) {
         if (this.callbacks.has(event)) {
             this.callbacks.get(event).delete(callback);
         }
     }
 
-    /**
-     * Notifies listeners of settings changes
-     * @param {string} event Event name
-     * @param {*} data Event data
-     */
     notifyListeners(event, data) {
         if (this.callbacks.has(event)) {
             for (const callback of this.callbacks.get(event)) {

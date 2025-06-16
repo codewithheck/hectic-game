@@ -5,6 +5,8 @@
  * Created: 2025-06-16 19:59:32 UTC
  */
 
+import { createElement } from '../utils/dom-helpers.js';
+
 export class Notification {
     constructor() {
         this.container = null;
@@ -16,8 +18,9 @@ export class Notification {
     }
 
     initialize() {
-        this.container = document.createElement('div');
-        this.container.className = 'notification-container';
+        this.container = createElement('div', {
+            class: 'notification-container'
+        });
         document.body.appendChild(this.container);
     }
 
@@ -48,33 +51,39 @@ export class Notification {
     }
 
     /**
-     * Creates a notification element
+     * Creates a notification element using dom-helpers
      * @param {string} message Notification message
      * @param {Object} settings Notification settings
      * @returns {HTMLElement} Notification element
      */
     createNotification(message, settings) {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${settings.type}`;
-        notification.setAttribute('role', 'alert');
+        const notification = createElement('div', {
+            class: `notification notification-${settings.type}`,
+            role: 'alert'
+        });
 
         if (settings.icon) {
-            const icon = document.createElement('span');
-            icon.className = 'notification-icon';
+            const icon = createElement('span', {
+                class: 'notification-icon'
+            });
             icon.innerHTML = this.getIconSVG(settings.type);
             notification.appendChild(icon);
         }
 
-        const content = document.createElement('div');
-        content.className = 'notification-content';
-        content.textContent = message;
+        const content = createElement('div', {
+            class: 'notification-content'
+        }, {
+            textContent: message
+        });
         notification.appendChild(content);
 
         if (settings.closable) {
-            const closeButton = document.createElement('button');
-            closeButton.className = 'notification-close';
-            closeButton.innerHTML = '×';
-            closeButton.setAttribute('aria-label', 'Close notification');
+            const closeButton = createElement('button', {
+                class: 'notification-close',
+                'aria-label': 'Close notification'
+            }, {
+                innerHTML: '×'
+            });
             closeButton.onclick = () => this.close(notification);
             notification.appendChild(closeButton);
         }

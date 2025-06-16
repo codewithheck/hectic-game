@@ -1,17 +1,11 @@
-/**
- * International Draughts Board Visualization
- * Note: Board graphics are pre-flipped in the provided image,
- * so no additional flipping is needed in the code.
- * @author codewithheck
- * Created: 2025-06-16 19:39:31 UTC
- */
-
 import {
     BOARD_SIZE,
     PIECE,
     SQUARE_NUMBERS,
     DOM_IDS
 } from '../engine/constants.js';
+
+import { createElement, createSquare, createPiece } from '../utils/dom-helpers.js';
 
 export class Board {
     constructor(container) {
@@ -33,16 +27,17 @@ export class Board {
     }
 
     createBoard() {
-        const board = document.createElement('div');
-        board.id = DOM_IDS.GAME_BOARD;
-        board.className = 'game-board';
+        const board = createElement('div', {
+            id: DOM_IDS.GAME_BOARD,
+            class: 'game-board'
+        });
 
         for (let row = 0; row < BOARD_SIZE; row++) {
             const squareRow = [];
             for (let col = 0; col < BOARD_SIZE; col++) {
-                const square = this.createSquare(row, col);
-                board.appendChild(square.element);
-                squareRow.push(square);
+                const squareObj = this.createSquare(row, col);
+                board.appendChild(squareObj.element);
+                squareRow.push(squareObj);
             }
             this.squares.push(squareRow);
         }
@@ -52,16 +47,12 @@ export class Board {
     }
 
     createSquare(row, col) {
-        const square = document.createElement('div');
-        square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
-        square.dataset.row = row;
-        square.dataset.col = col;
+        const isDark = (row + col) % 2 === 1;
+        const square = createSquare(row, col, isDark);
 
-        if ((row + col) % 2 === 1) {
+        if (isDark) {
             const number = SQUARE_NUMBERS[row * BOARD_SIZE + col];
-            const numberDiv = document.createElement('div');
-            numberDiv.className = 'square-number';
-            numberDiv.textContent = number;
+            const numberDiv = createElement('div', { class: 'square-number' }, { textContent: number });
             square.appendChild(numberDiv);
         }
 
@@ -124,19 +115,10 @@ export class Board {
 
         if (piece === PIECE.NONE) return;
 
-        const pieceElement = document.createElement('div');
-        pieceElement.className = 'piece';
+        const isKing = piece === PIECE.WHITE_KING || piece === PIECE.BLACK_KING;
+        const pieceType = (piece === PIECE.WHITE || piece === PIECE.WHITE_KING) ? PIECE.WHITE : PIECE.BLACK;
+        const pieceElement = createPiece(pieceType, isKing);
         pieceElement.draggable = isDraggable;
-
-        if (piece === PIECE.WHITE || piece === PIECE.WHITE_KING) {
-            pieceElement.classList.add('white');
-        } else {
-            pieceElement.classList.add('black');
-        }
-
-        if (piece === PIECE.WHITE_KING || piece === PIECE.BLACK_KING) {
-            pieceElement.classList.add('king');
-        }
 
         squareElement.appendChild(pieceElement);
         square.piece = pieceElement;

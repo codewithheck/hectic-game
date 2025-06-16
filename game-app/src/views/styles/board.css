@@ -1,0 +1,231 @@
+/**
+ * International Draughts Board Styles
+ * Note: Board graphics are pre-flipped in the provided image,
+ * so no additional flipping is needed in the code.
+ * @author codewithheck
+ * Created: 2025-06-16 19:42:19 UTC
+ */
+
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    width: 500px;
+    height: 500px;
+    border: 2px solid #2c3e50;
+    background-image: url('../images/board.png');
+    background-size: cover;
+    position: relative;
+    user-select: none;
+}
+
+.square {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transition: background-color 0.2s ease;
+}
+
+.square.light {
+    background-color: transparent;
+}
+
+.square.dark {
+    background-color: transparent;
+}
+
+.square-number {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.piece {
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: transform 0.2s ease;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.piece.white {
+    background: #fff;
+    border: 2px solid #ccc;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 -4px 4px rgba(0, 0, 0, 0.1),
+        inset 0 4px 4px rgba(255, 255, 255, 0.5);
+}
+
+.piece.black {
+    background: #333;
+    border: 2px solid #000;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.3),
+        inset 0 -4px 4px rgba(0, 0, 0, 0.3),
+        inset 0 4px 4px rgba(255, 255, 255, 0.1);
+}
+
+.piece.king::after {
+    content: '⚜';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+}
+
+.piece.white.king::after {
+    color: #d4af37;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.piece.black.king::after {
+    color: #ffd700;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
+}
+
+.square.selected {
+    background-color: rgba(52, 152, 219, 0.3);
+    box-shadow: inset 0 0 0 3px #3498db;
+}
+
+.square.possible-move::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20%;
+    height: 20%;
+    background-color: rgba(46, 204, 113, 0.6);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.square.capture-move::before {
+    background-color: rgba(231, 76, 60, 0.6);
+    width: 30%;
+    height: 30%;
+}
+
+.square.captured {
+    background-color: rgba(231, 76, 60, 0.2);
+    box-shadow: inset 0 0 0 3px rgba(231, 76, 60, 0.7);
+}
+
+.piece[draggable=true]:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+    cursor: grab;
+}
+
+.piece[draggable=true]:active {
+    cursor: grabbing;
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+@keyframes piece-appear {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.piece {
+    animation: piece-appear 0.3s ease;
+}
+
+@media (max-width: 600px) {
+    .game-board {
+        width: 100vw;
+        height: 100vw;
+        max-width: 500px;
+        max-height: 500px;
+    }
+
+    .square-number {
+        font-size: 8px;
+    }
+
+    .piece.king::after {
+        font-size: 20px;
+    }
+
+    .piece {
+        width: 90%;
+        height: 90%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .piece, 
+    .square {
+        transition: none;
+    }
+
+    .piece {
+        animation: none;
+    }
+
+    .piece[draggable=true]:hover {
+        transform: translate(-50%, -50%);
+    }
+}
+
+@media (prefers-contrast: high) {
+    .square.selected {
+        background-color: rgba(0, 0, 0, 0.4);
+        box-shadow: inset 0 0 0 3px #000000;
+    }
+
+    .square.possible-move::before {
+        background-color: rgba(0, 255, 0, 0.8);
+    }
+
+    .square.capture-move::before {
+        background-color: rgba(255, 0, 0, 0.8);
+    }
+
+    .square.captured {
+        background-color: rgba(255, 0, 0, 0.4);
+        box-shadow: inset 0 0 0 3px #ff0000;
+    }
+
+    .piece.white {
+        background: #ffffff;
+        border: 3px solid #000000;
+        box-shadow: none;
+    }
+
+    .piece.black {
+        background: #000000;
+        border: 3px solid #ffffff;
+        box-shadow: none;
+    }
+
+    .piece.king::after {
+        color: #ff0000;
+        text-shadow: none;
+    }
+
+    .square-number {
+        color: #ffffff;
+        text-shadow: 
+            -1px -1px 0 #000,
+             1px -1px 0 #000,
+            -1px  1px 0 #000,
+             1px  1px 0 #000;
+    }
+}

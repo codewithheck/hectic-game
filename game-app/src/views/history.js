@@ -6,6 +6,7 @@
  */
 
 import { PLAYER, GAME_STATE } from '../engine/constants.js';
+import { createElement } from '../utils/dom-helpers.js';
 
 export class History {
     constructor(game, board) {
@@ -28,12 +29,10 @@ export class History {
      * Creates the history panel UI
      */
     createHistoryPanel() {
-        this.container = document.createElement('div');
-        this.container.className = 'history-panel';
+        this.container = createElement('div', { class: 'history-panel' });
 
         // Navigation controls
-        const controls = document.createElement('div');
-        controls.className = 'history-controls';
+        const controls = createElement('div', { class: 'history-controls' });
 
         this.firstButton = this.createButton('⟪', 'Jump to start', () => this.jumpToStart());
         this.prevButton = this.createButton('←', 'Previous move', () => this.previousMove());
@@ -46,8 +45,7 @@ export class History {
         controls.appendChild(this.lastButton);
 
         // Move list
-        this.moveList = document.createElement('div');
-        this.moveList.className = 'history-moves';
+        this.moveList = createElement('div', { class: 'history-moves' });
 
         this.container.appendChild(controls);
         this.container.appendChild(this.moveList);
@@ -63,10 +61,12 @@ export class History {
      * @returns {HTMLElement} Button element
      */
     createButton(text, title, onClick) {
-        const button = document.createElement('button');
-        button.className = 'history-button';
-        button.textContent = text;
-        button.title = title;
+        const button = createElement('button', { 
+            class: 'history-button', 
+            title: title 
+        }, {
+            textContent: text
+        });
         button.addEventListener('click', onClick);
         return button;
     }
@@ -130,13 +130,10 @@ export class History {
         
         for (let i = 0; i < this.history.length; i += 2) {
             const moveNumber = Math.floor(i / 2) + 1;
-            const moveRow = document.createElement('div');
-            moveRow.className = 'history-move-row';
+            const moveRow = createElement('div', { class: 'history-move-row' });
 
             // Move number
-            const numberCell = document.createElement('span');
-            numberCell.className = 'move-number';
-            numberCell.textContent = `${moveNumber}.`;
+            const numberCell = createElement('span', { class: 'move-number' }, { textContent: `${moveNumber}.` });
             moveRow.appendChild(numberCell);
 
             // White's move
@@ -166,9 +163,7 @@ export class History {
      * @returns {HTMLElement} Move element
      */
     createMoveElement(index, historyItem) {
-        const moveElement = document.createElement('span');
-        moveElement.className = 'move-notation';
-        moveElement.textContent = historyItem.notation;
+        const moveElement = createElement('span', { class: 'move-notation' }, { textContent: historyItem.notation });
         
         if (index === this.currentIndex) {
             moveElement.classList.add('current-move');

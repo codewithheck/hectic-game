@@ -1,9 +1,9 @@
 /**
  * International Draughts Board Visualization
- * Note: This implementation handles the visual board representation for a horizontally flipped board
- * where square numbers increase from right to left
+ * Note: Board graphics are pre-flipped in the provided image,
+ * so no additional flipping is needed in the code.
  * @author codewithheck
- * Created: 2025-06-16 19:29:48 UTC
+ * Created: 2025-06-16 19:39:31 UTC
  */
 
 import {
@@ -17,7 +17,6 @@ export class Board {
     constructor(container) {
         this.container = container;
         this.squares = [];
-        this.isFlipped = false;
         this.callbacks = {
             onSquareClick: null,
             onPieceDragStart: null,
@@ -28,23 +27,16 @@ export class Board {
         this.initialize();
     }
 
-    /**
-     * Initializes the board visualization
-     */
     initialize() {
         this.createBoard();
         this.attachEventListeners();
     }
 
-    /**
-     * Creates the board DOM structure
-     */
     createBoard() {
         const board = document.createElement('div');
         board.id = DOM_IDS.GAME_BOARD;
         board.className = 'game-board';
 
-        // Create squares grid
         for (let row = 0; row < BOARD_SIZE; row++) {
             const squareRow = [];
             for (let col = 0; col < BOARD_SIZE; col++) {
@@ -59,19 +51,12 @@ export class Board {
         this.boardElement = board;
     }
 
-    /**
-     * Creates a single square element
-     * @param {number} row 
-     * @param {number} col 
-     * @returns {Object} Square object with element and state
-     */
     createSquare(row, col) {
         const square = document.createElement('div');
         square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
         square.dataset.row = row;
         square.dataset.col = col;
 
-        // Add square number for dark squares
         if ((row + col) % 2 === 1) {
             const number = SQUARE_NUMBERS[row * BOARD_SIZE + col];
             const numberDiv = document.createElement('div');
@@ -87,9 +72,6 @@ export class Board {
         };
     }
 
-    /**
-     * Attaches event listeners to the board
-     */
     attachEventListeners() {
         this.boardElement.addEventListener('click', (e) => {
             const square = e.target.closest('.square');
@@ -127,26 +109,14 @@ export class Board {
         });
     }
 
-    /**
-     * Sets event callbacks
-     * @param {Object} callbacks 
-     */
     setCallbacks(callbacks) {
         this.callbacks = { ...this.callbacks, ...callbacks };
     }
 
-    /**
-     * Updates piece on a square
-     * @param {number} row 
-     * @param {number} col 
-     * @param {number} piece 
-     * @param {boolean} isDraggable 
-     */
     setPiece(row, col, piece, isDraggable = false) {
         const square = this.squares[row][col];
         const squareElement = square.element;
 
-        // Remove existing piece
         if (square.piece) {
             squareElement.removeChild(square.piece);
             square.piece = null;
@@ -154,7 +124,6 @@ export class Board {
 
         if (piece === PIECE.NONE) return;
 
-        // Create new piece
         const pieceElement = document.createElement('div');
         pieceElement.className = 'piece';
         pieceElement.draggable = isDraggable;
@@ -173,12 +142,6 @@ export class Board {
         square.piece = pieceElement;
     }
 
-    /**
-     * Highlights a square
-     * @param {number} row 
-     * @param {number} col 
-     * @param {string} type Highlight type ('selected', 'possible-move', 'capture-move', 'captured')
-     */
     highlightSquare(row, col, type) {
         const square = this.squares[row][col];
         if (square.highlight) {
@@ -192,9 +155,6 @@ export class Board {
         }
     }
 
-    /**
-     * Clears all highlights
-     */
     clearHighlights() {
         for (let row = 0; row < BOARD_SIZE; row++) {
             for (let col = 0; col < BOARD_SIZE; col++) {
@@ -203,17 +163,6 @@ export class Board {
         }
     }
 
-    /**
-     * Flips the board view
-     */
-    flipBoard() {
-        this.isFlipped = !this.isFlipped;
-        this.boardElement.classList.toggle('flipped');
-    }
-
-    /**
-     * Clears the entire board
-     */
     clear() {
         for (let row = 0; row < BOARD_SIZE; row++) {
             for (let col = 0; col < BOARD_SIZE; col++) {
@@ -223,12 +172,6 @@ export class Board {
         this.clearHighlights();
     }
 
-    /**
-     * Gets square element at coordinates
-     * @param {number} row 
-     * @param {number} col 
-     * @returns {HTMLElement}
-     */
     getSquareElement(row, col) {
         return this.squares[row][col].element;
     }

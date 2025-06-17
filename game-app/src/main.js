@@ -1,99 +1,78 @@
-// Main entry point for the International Draughts game
-
 import { Game } from './engine/game.js';
 import { AI } from './engine/ai.js';
 import { Renderer } from './views/renderer.js';
+import { UI } from './views/ui.js';
+import { Board } from './views/board.js';
 
 class DraughtsGame {
     constructor() {
-        // Initialize core game components
+        // Core logic
         this.game = new Game();
         this.ai = new AI();
 
-        // Initialize renderer with DOM elements
+        // DOM elements
+        this.boardElement = document.getElementById('board');
+        this.historyElement = document.getElementById('history');
+        this.statusElement = document.getElementById('status');
+
+        // Renderer (handles all rendering)
         this.renderer = new Renderer(
             this.game,
-            document.getElementById('board'),
-            document.getElementById('history'),
-            document.getElementById('status')
+            this.boardElement,
+            this.historyElement,
+            this.statusElement
         );
 
-        // Bind event handlers
-        this.bindEvents();
+        // UI controls (new game, undo, redo, FEN import/export, etc.)
+        this.ui = new UI();
 
-        // Start game
+        // Board interaction (clicks, drag & drop)
+        this.board = new Board(this.boardElement);
+
+        // Initial render
         this.newGame();
     }
 
-    bindEvents() {
-        // Example: Square click event (replace with your actual board click logic)
-        document.getElementById('board').addEventListener('click', async (e) => {
-            const squareEl = e.target.closest('.board-square');
-            if (!squareEl) return;
-            const row = parseInt(squareEl.dataset.row, 10);
-            const col = parseInt(squareEl.dataset.col, 10);
+    async handleSquareClick({ row, col }) {
+        // Handle selection or move by clicking
+        const move = this.game.handleSquareSelection({ row, col });
+        if (move) {
+            this.renderer.renderAll();
 
-            // Assume you have a method to handle selection
-            const move = this.game.handleSquareSelection({ row, col });
-            if (move) {
-                this.renderer.renderAll();
-
-                // If it's the AI's turn, make AI move
-                if (!this.game.isGameOver() && !this.game.isPlayerTurn()) {
-                    const aiMove = await this.ai.getMove(this.game.getPosition());
-                    if (aiMove) {
-                        this.game.makeMove(aiMove);
-                        this.renderer.renderAll();
-                    }
-                }
-            }
-        });
-
-        // Example: Undo button
-        const undoBtn = document.getElementById('undo');
-        if (undoBtn) {
-            undoBtn.addEventListener('click', () => {
-                this.game.undo();
-                this.renderer.renderAll();
-            });
-        }
-
-        // Example: Redo button
-        const redoBtn = document.getElementById('redo');
-        if (redoBtn) {
-            redoBtn.addEventListener('click', () => {
-                this.game.redo();
-                this.renderer.renderAll();
-            });
-        }
-
-        // Example: New game button
-        const newGameBtn = document.getElementById('new-game');
-        if (newGameBtn) {
-            newGameBtn.addEventListener('click', () => {
-                this.newGame();
-            });
-        }
-
-        // Example: Import FEN
-        const importFENBtn = document.getElementById('import-fen');
-        if (importFENBtn) {
-            importFENBtn.addEventListener('click', () => {
-                const fen = prompt('Paste FEN string:');
-                if (fen) {
-                    this.game.loadFEN(fen);
+            // AI Move if needed
+            if (!this.game.isGameOver() && !this.game.isPlayerTurn()) {
+                const aiMove = await this.ai.getMove(this.game.getPosition());
+                if (aiMove) {
+                    this.game.makeMove(aiMove);
                     this.renderer.renderAll();
                 }
-            });
+            }
+        } else {
+            // Rerender to clear selection/highlights if click had no effect
+            this.renderer.renderAll();
         }
+    }
 
-        // Example: Export FEN
-        const exportFENBtn = document.getElementById('export-fen');
-        if (exportFENBtn) {
-            exportFENBtn.addEventListener('click', () => {
-                const fen = this.game.getFEN();
-                window.prompt('FEN string:', fen);
-            });
+    async handlePieceDrop({ from, to }) {
+        // Try to select the piece at 'from'
+        this.game.handleSquareSelection(from);
+        // Try to move to 'to'
+        const attemptedMove = this.game.handleSquareSelection(to);
+
+        if (attemptedMove) {
+            this.renderer.renderAll();
+
+            // AI Move if needed
+            if (!this.game.isGameOver() && !this.game.isPlayerTurn()) {
+                const aiMove = await this.ai.getMove(this.game.getPosition());
+                if (aiMove) {
+                    this.game.makeMove(aiMove);
+                    this.renderer.renderAll();
+                }
+            }
+        } else {
+            // Even if move not valid, re-render to clear selection/highlights
+            this.renderer.renderAll();
         }
     }
 

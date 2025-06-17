@@ -15,10 +15,10 @@ export class Board {
         this.highlightedSquares = [];
         
         // Fine-tuning parameters - adjust these to perfect the positioning
-        this.boardSize = 650; // Total board size
+        this.boardSize = 600; // Total board size
         this.squareSize = this.boardSize / BOARD_SIZE; // 60px per square
         
-        // Fine-tuning offsets (adjust these if pieces are still not centered)
+        // Fine-tuning offsets (will be adjusted by positioning tool)
         this.boardOffsetX = 0; // Horizontal offset for the entire grid
         this.boardOffsetY = 0; // Vertical offset for the entire grid
         this.pieceOffsetX = 0; // Additional horizontal offset for pieces only

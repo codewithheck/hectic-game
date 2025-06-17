@@ -155,17 +155,18 @@ export class AI {
             score: bestScore,
             depth: maxDepth,
             nodes: this.nodeCount,
-            time: Date.now() - startTime
+            time: Date.now() - startTime,
+            bestMove: bestMove
         };
 
-        this.cache.cleanup(); // <-- ADDED: Clean up cache after each move search
+        this.cache.cleanup();
 
         return bestMove;
     }
 
     async iterativeSearch(position, depth, startTime) {
-        const alpha = -Infinity;
-        const beta = Infinity;
+        let alpha = -Infinity;  // Changed from const to let
+        let beta = Infinity;    // Changed from const to let
         let bestMove = null;
         let bestScore = -Infinity;
 
@@ -319,7 +320,7 @@ export class AI {
 
     assessPositionComplexity(position) {
         const moves = this.generateMoves(position);
-        const captures = moves.filter(move => move.captures.length > 0);
+        const captures = moves.filter(move => move.captures && move.captures.length > 0);
         const materialCount = this.countMaterial(position);
         
         let complexity = 1.0;
@@ -332,11 +333,11 @@ export class AI {
     }
 
     isInOpeningBook(position) {
-        return this.openingBook && this.openingBook.getOpeningMoves(position).length > 0;
+        return this.openingBook && this.openingBook.getOpeningMoves && this.openingBook.getOpeningMoves(position).length > 0;
     }
 
     getOpeningBookMove(position) {
-        if (!this.openingBook) return null;
+        if (!this.openingBook || !this.openingBook.getOpeningMoves) return null;
         
         const moves = this.openingBook.getOpeningMoves(position);
         if (!moves.length) return null;
@@ -469,8 +470,10 @@ export class AI {
         newPosition.pieces[move.from.row][move.from.col] = PIECE.NONE;
         newPosition.pieces[move.to.row][move.to.col] = piece;
 
-        for (const capture of move.captures) {
-            newPosition.pieces[capture.row][capture.col] = PIECE.NONE;
+        if (move.captures) {
+            for (const capture of move.captures) {
+                newPosition.pieces[capture.row][capture.col] = PIECE.NONE;
+            }
         }
 
         if (this.shouldPromote(piece, move.to.row)) {

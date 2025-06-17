@@ -1,6 +1,6 @@
 /**
  * Board class for hectic-game
- * Uses the provided flipped_board.jpg image
+ * Uses the provided flipped_board.jpg image with precise positioning
  * FLIPPED BOARD VERSION
  */
 
@@ -13,7 +13,16 @@ export class Board {
         this.editMode = false;
         this.selectedSquare = null;
         this.highlightedSquares = [];
-        this.squareSize = 60; // Adjust this based on your board image size
+        
+        // Fine-tuning parameters - adjust these to perfect the positioning
+        this.boardSize = 600; // Total board size
+        this.squareSize = this.boardSize / BOARD_SIZE; // 60px per square
+        
+        // Fine-tuning offsets (adjust these if pieces are still not centered)
+        this.boardOffsetX = 0; // Horizontal offset for the entire grid
+        this.boardOffsetY = 0; // Vertical offset for the entire grid
+        this.pieceOffsetX = 0; // Additional horizontal offset for pieces only
+        this.pieceOffsetY = 0; // Additional vertical offset for pieces only
     }
 
     initialize() {
@@ -30,13 +39,9 @@ export class Board {
     createBoard() {
         this.container.innerHTML = '';
         
-        // Calculate board size to fit the container or use a fixed size
-        const boardSize = 600; // Adjust this to match your image size
-        this.squareSize = boardSize / BOARD_SIZE;
-        
         this.container.style.position = 'relative';
-        this.container.style.width = `${boardSize}px`;
-        this.container.style.height = `${boardSize}px`;
+        this.container.style.width = `${this.boardSize}px`;
+        this.container.style.height = `${this.boardSize}px`;
         this.container.style.backgroundImage = 'url("assets/images/flipped_board.jpg")';
         this.container.style.backgroundSize = 'cover';
         this.container.style.backgroundPosition = 'center';
@@ -51,8 +56,8 @@ export class Board {
                 square.style.position = 'absolute';
                 square.style.width = `${this.squareSize}px`;
                 square.style.height = `${this.squareSize}px`;
-                square.style.left = `${col * this.squareSize}px`;
-                square.style.top = `${row * this.squareSize}px`;
+                square.style.left = `${col * this.squareSize + this.boardOffsetX}px`;
+                square.style.top = `${row * this.squareSize + this.boardOffsetY}px`;
                 square.dataset.row = row;
                 square.dataset.col = col;
                 
@@ -60,6 +65,9 @@ export class Board {
                 square.style.backgroundColor = 'transparent';
                 square.style.cursor = 'pointer';
                 square.style.border = 'none';
+                
+                // Debug: uncomment the next line to see square boundaries
+                // square.style.border = '1px solid rgba(255,0,0,0.3)';
                 
                 // Only dark squares are playable in draughts (flipped board)
                 if (isDarkSquare(row, col)) {
@@ -70,7 +78,7 @@ export class Board {
             }
         }
 
-        console.log('Board created with flipped board background image');
+        console.log('Board created with precise positioning for flipped board');
     }
 
     attachEventListeners() {
@@ -221,14 +229,20 @@ export class Board {
         pieceEl.className = this.getPieceClass(pieceType);
         pieceEl.style.position = 'absolute';
         
-        // Size pieces to fit nicely in squares
-        const pieceSize = this.squareSize * 0.8; // 80% of square size
-        const offset = (this.squareSize - pieceSize) / 2; // Center the piece
+        // Calculate precise piece positioning
+        const pieceSize = this.squareSize * 0.75; // 75% of square size for better fit
+        
+        // Center the piece in the square, plus any additional offsets
+        const baseCenterOffsetX = (this.squareSize - pieceSize) / 2;
+        const baseCenterOffsetY = (this.squareSize - pieceSize) / 2;
+        
+        const finalOffsetX = baseCenterOffsetX + this.pieceOffsetX;
+        const finalOffsetY = baseCenterOffsetY + this.pieceOffsetY;
         
         pieceEl.style.width = `${pieceSize}px`;
         pieceEl.style.height = `${pieceSize}px`;
-        pieceEl.style.left = `${offset}px`;
-        pieceEl.style.top = `${offset}px`;
+        pieceEl.style.left = `${finalOffsetX}px`;
+        pieceEl.style.top = `${finalOffsetY}px`;
         pieceEl.style.borderRadius = '50%';
         pieceEl.style.border = '3px solid #000';
         pieceEl.style.cursor = 'grab';
@@ -267,6 +281,35 @@ export class Board {
         }
 
         square.appendChild(pieceEl);
+    }
+
+    // Method to adjust positioning if pieces are still not perfectly centered
+    adjustPiecePositioning(offsetX = 0, offsetY = 0) {
+        this.pieceOffsetX = offsetX;
+        this.pieceOffsetY = offsetY;
+        
+        // Re-render all pieces with new positioning
+        if (window.game) {
+            this.updatePosition(window.game.getGamePosition());
+        }
+        
+        console.log(`Piece positioning adjusted: X=${offsetX}, Y=${offsetY}`);
+    }
+
+    // Method to adjust board grid positioning
+    adjustBoardGrid(offsetX = 0, offsetY = 0) {
+        this.boardOffsetX = offsetX;
+        this.boardOffsetY = offsetY;
+        
+        // Re-create the board with new grid positioning
+        this.createBoard();
+        
+        // Re-render pieces
+        if (window.game) {
+            this.updatePosition(window.game.getGamePosition());
+        }
+        
+        console.log(`Board grid adjusted: X=${offsetX}, Y=${offsetY}`);
     }
 
     getPieceClass(piece) {

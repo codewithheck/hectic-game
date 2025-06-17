@@ -68,7 +68,7 @@ function validatePieceSection(section, color) {
 
         // Extract square number
         const number = parseInt(piece.replace('K', ''));
-        
+
         // Validate square number
         if (!validSquares.has(number)) {
             return false;
@@ -114,32 +114,46 @@ function hasOverlappingSquares(set1, set2) {
 }
 
 /**
- * Parses a FEN string into a board position
+ * Parses a FEN string into a board position (with robust error handling)
  * @param {string} fen - FEN string to parse
  * @returns {Object} Position object
- * @throws {Error} If FEN is invalid
+ * @throws {Error} If FEN is invalid or malformed
  */
 export function parseFEN(fen) {
+    if (typeof fen !== 'string' || !fen.trim()) {
+        throw new Error('FEN must be a non-empty string');
+    }
+
+    const parts = fen.trim().split(':');
+    if (parts.length !== 3) {
+        throw new Error('FEN must have three sections: player, white, black (separated by colons)');
+    }
+    const [player, white, black] = parts;
+
+    if (player !== 'W' && player !== 'B') {
+        throw new Error('Current player must be "W" or "B"');
+    }
+
     if (!validateFEN(fen)) {
         throw new Error('Invalid FEN string');
     }
 
     const position = {
         pieces: Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(PIECE.NONE)),
-        currentPlayer: PLAYER.WHITE
+        currentPlayer: player === 'W' ? PLAYER.WHITE : PLAYER.BLACK
     };
 
-    const [player, white, black] = fen.split(':');
-    position.currentPlayer = player === 'W' ? PLAYER.WHITE : PLAYER.BLACK;
-
-    // Place white pieces
-    if (white.length > 1) {
-        placePieces(position.pieces, white.substring(1), true);
-    }
-
-    // Place black pieces
-    if (black.length > 1) {
-        placePieces(position.pieces, black.substring(1), false);
+    try {
+        // Place white pieces
+        if (white.length > 1) {
+            placePieces(position.pieces, white.substring(1), true);
+        }
+        // Place black pieces
+        if (black.length > 1) {
+            placePieces(position.pieces, black.substring(1), false);
+        }
+    } catch (e) {
+        throw new Error('Error while placing pieces from FEN: ' + e.message);
     }
 
     return position;
@@ -158,7 +172,7 @@ function placePieces(board, section, isWhite) {
         const isKing = piece.endsWith('K');
         const number = parseInt(isKing ? piece.slice(0, -1) : piece);
         const position = getPositionFromNumber(number);
-        
+
         board[position.row][position.col] = isWhite ?
             (isKing ? PIECE.WHITE_KING : PIECE.WHITE) :
             (isKing ? PIECE.BLACK_KING : PIECE.BLACK);

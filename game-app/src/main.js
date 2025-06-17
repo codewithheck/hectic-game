@@ -283,3 +283,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 export { DraughtsGame };
+// Import positioning tool for development
+import '../utils/positioning-tool.js';

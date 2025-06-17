@@ -34,7 +34,42 @@ export class Game {
             [PLAYER.BLACK]: []
         };
         this.gameMode = GAME_MODE.NORMAL;
-        this.loadFEN(FEN.START_POSITION);
+        this.setupInitialPosition();
+    }
+
+    /**
+     * Sets up the initial position for International Draughts
+     * 20 pieces per player, only on dark squares
+     */
+    setupInitialPosition() {
+        // Clear the board first
+        for (let row = 0; row < BOARD_SIZE; row++) {
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                this.pieces[row][col] = PIECE.NONE;
+            }
+        }
+
+        // Place black pieces (first 4 rows, dark squares only)
+        for (let row = 0; row < 4; row++) {
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                // Only place on dark squares (where row + col is odd)
+                if ((row + col) % 2 === 1) {
+                    this.pieces[row][col] = PIECE.BLACK;
+                }
+            }
+        }
+
+        // Place white pieces (last 4 rows, dark squares only)
+        for (let row = 6; row < BOARD_SIZE; row++) {
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                // Only place on dark squares (where row + col is odd)
+                if ((row + col) % 2 === 1) {
+                    this.pieces[row][col] = PIECE.WHITE;
+                }
+            }
+        }
+
+        console.log('Initial position set up with 20 pieces each');
     }
 
     /**
@@ -69,30 +104,34 @@ export class Game {
      */
     makeMove(move) {
         if (!this.isValidMove(move)) {
+            console.log('Invalid move attempted:', move);
             return false;
         }
 
         const piece = this.getPiece(move.from.row, move.from.col);
         
         // Record move in history
-        this.moveHistory.push({
+        const moveRecord = {
             from: { ...move.from },
             to: { ...move.to },
             piece: piece,
-            captures: [...move.captures],
+            captures: move.captures ? [...move.captures] : [],
             notation: this.getMoveNotation(move)
-        });
+        };
+        this.moveHistory.push(moveRecord);
 
         // Execute move
         this.setPiece(move.from.row, move.from.col, PIECE.NONE);
         this.setPiece(move.to.row, move.to.col, piece);
 
         // Handle captures
-        move.captures.forEach(capture => {
-            const capturedPiece = this.getPiece(capture.row, capture.col);
-            this.capturedPieces[this.currentPlayer].push(capturedPiece);
-            this.setPiece(capture.row, capture.col, PIECE.NONE);
-        });
+        if (move.captures) {
+            move.captures.forEach(capture => {
+                const capturedPiece = this.getPiece(capture.row, capture.col);
+                this.capturedPieces[this.currentPlayer].push(capturedPiece);
+                this.setPiece(capture.row, capture.col, PIECE.NONE);
+            });
+        }
 
         // Handle promotion
         if (this.shouldPromote(piece, move.to.row)) {
@@ -109,6 +148,7 @@ export class Game {
         // Update game state
         this.updateGameState();
 
+        console.log(`Move made: ${moveRecord.notation}, now ${this.currentPlayer === PLAYER.WHITE ? 'White' : 'Black'} to move`);
         return true;
     }
 
@@ -135,55 +175,13 @@ export class Game {
             return false;
         }
 
-        // If captures available, only capture moves are valid
-        const availableCaptures = this.getAvailableCaptures();
-        if (availableCaptures.length > 0) {
-            const isValidCapture = availableCaptures.some(capMove =>
-                capMove.from.row === move.from.row &&
-                capMove.from.col === move.from.col &&
-                capMove.to.row === move.to.row &&
-                capMove.to.col === move.to.col &&
-                JSON.stringify(capMove.captures) === JSON.stringify(move.captures)
-            );
-            return isValidCapture;
-        }
-
-        // For normal moves, check if move follows piece movement rules
-        return this.getNormalMoves().some(normalMove =>
-            normalMove.from.row === move.from.row &&
-            normalMove.from.col === move.from.col &&
-            normalMove.to.row === move.to.row &&
-            normalMove.to.col === move.to.col
-        );
-    }
-
-    /**
-     * Validates if moving from one square to another is legal for the current player.
-     * @param {Object} from - { row, col }
-     * @param {Object} to - { row, col }
-     * @returns {boolean}
-     */
-    validateMove(from, to) {
-        // Ensure both positions are on the board
-        if (!this.isValidPosition(from.row, from.col) || !this.isValidPosition(to.row, to.col)) {
-            throw new Error('Invalid move: Out of board bounds');
-        }
-        // Get the piece at the source
-        const piece = this.getPiece(from.row, from.col);
-        if (piece === PIECE.NONE) {
-            throw new Error('Invalid move: No piece at source position');
-        }
-        // Check if it's the current player's piece
-        if (!this.isPieceOfCurrentPlayer(piece)) {
-            return false;
-        }
-        // Gather all legal moves and check if the desired move is among them
+        // Check if move is in list of legal moves
         const legalMoves = this.getLegalMoves();
-        return legalMoves.some(move =>
-            move.from.row === from.row &&
-            move.from.col === from.col &&
-            move.to.row === to.row &&
-            move.to.col === to.col
+        return legalMoves.some(legalMove =>
+            legalMove.from.row === move.from.row &&
+            legalMove.from.col === move.from.col &&
+            legalMove.to.row === move.to.row &&
+            legalMove.to.col === move.to.col
         );
     }
 
@@ -264,7 +262,8 @@ export class Game {
             const newCol = col + dir.dx;
 
             if (this.isValidPosition(newRow, newCol) &&
-                this.getPiece(newRow, newCol) === PIECE.NONE) {
+                this.getPiece(newRow, newCol) === PIECE.NONE &&
+                (newRow + newCol) % 2 === 1) { // Must be on dark square
                 moves.push({
                     from: { row, col },
                     to: { row: newRow, col: newCol },
@@ -340,9 +339,10 @@ export class Game {
      * @returns {boolean}
      */
     isValidCapture(fromRow, fromCol, captureRow, captureCol, landingRow, landingCol, visitedSquares) {
-        // Check if landing square is within bounds and empty
+        // Check if landing square is within bounds, empty, and on dark square
         if (!this.isValidPosition(landingRow, landingCol) ||
-            this.getPiece(landingRow, landingCol) !== PIECE.NONE) {
+            this.getPiece(landingRow, landingCol) !== PIECE.NONE ||
+            (landingRow + landingCol) % 2 === 0) { // Must be on dark square
             return false;
         }
 
@@ -395,7 +395,6 @@ export class Game {
         // Check last 20 moves for threefold repetition
         const start = Math.max(0, this.moveHistory.length - 20);
         for (let i = start; i < this.moveHistory.length; i++) {
-            const move = this.moveHistory[i];
             const position = this.getFEN();
             positions[position] = (positions[position] || 0) + 1;
             if (positions[position] >= 3) {
@@ -447,7 +446,6 @@ export class Game {
         let white = [];
         let black = [];
 
-        // Remember board is mirrored horizontally
         for (let row = 0; row < BOARD_SIZE; row++) {
             for (let col = 0; col < BOARD_SIZE; col++) {
                 if ((row + col) % 2 === 1) {  // Only dark squares
@@ -571,7 +569,7 @@ export class Game {
     getMoveNotation(move) {
         const fromSquare = SQUARE_NUMBERS[move.from.row * BOARD_SIZE + move.from.col];
         const toSquare = SQUARE_NUMBERS[move.to.row * BOARD_SIZE + move.to.col];
-        return move.captures.length > 0 ? 
+        return (move.captures && move.captures.length > 0) ? 
             `${fromSquare}x${toSquare}` : 
             `${fromSquare}-${toSquare}`;
     }

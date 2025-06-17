@@ -1,6 +1,6 @@
 /**
  * Board class for hectic-game
- * Uses the provided flipped_board.jpg image with precise positioning
+ * Fixed for wooden board with decorative borders
  * FLIPPED BOARD VERSION
  */
 
@@ -14,15 +14,19 @@ export class Board {
         this.selectedSquare = null;
         this.highlightedSquares = [];
         
-        // Fine-tuning parameters - adjust these to perfect the positioning
-        this.boardSize = 600; // Total board size
-        this.squareSize = this.boardSize / BOARD_SIZE; // 60px per square
+        // Wooden board configuration
+        this.totalBoardSize = 600; // Total board image size
         
-        // Fine-tuning offsets (will be adjusted by positioning tool)
-        this.boardOffsetX = 0; // Horizontal offset for the entire grid
-        this.boardOffsetY = 0; // Vertical offset for the entire grid
-        this.pieceOffsetX = 0; // Additional horizontal offset for pieces only
-        this.pieceOffsetY = 0; // Additional vertical offset for pieces only
+        // Adjustable parameters for your wooden board
+        this.borderSize = 30; // Decorative border width (adjust this!)
+        this.playingAreaSize = this.totalBoardSize - (this.borderSize * 2); // Actual playing area
+        this.squareSize = this.playingAreaSize / BOARD_SIZE; // Size of each square
+        
+        // Fine-tuning offsets
+        this.pieceOffsetX = 0;
+        this.pieceOffsetY = 0;
+        
+        console.log(`Board config: Total=${this.totalBoardSize}px, Border=${this.borderSize}px, Playing area=${this.playingAreaSize}px, Square size=${this.squareSize}px`);
     }
 
     initialize() {
@@ -40,15 +44,15 @@ export class Board {
         this.container.innerHTML = '';
         
         this.container.style.position = 'relative';
-        this.container.style.width = `${this.boardSize}px`;
-        this.container.style.height = `${this.boardSize}px`;
+        this.container.style.width = `${this.totalBoardSize}px`;
+        this.container.style.height = `${this.totalBoardSize}px`;
         this.container.style.backgroundImage = 'url("assets/images/flipped_board.jpg")';
         this.container.style.backgroundSize = 'cover';
         this.container.style.backgroundPosition = 'center';
         this.container.style.backgroundRepeat = 'no-repeat';
-        this.container.style.border = '2px solid #333';
+        this.container.style.border = '3px solid #333';
 
-        // Create invisible clickable squares over the board image
+        // Create squares positioned inside the decorative border
         for (let row = 0; row < BOARD_SIZE; row++) {
             for (let col = 0; col < BOARD_SIZE; col++) {
                 const square = document.createElement('div');
@@ -56,8 +60,11 @@ export class Board {
                 square.style.position = 'absolute';
                 square.style.width = `${this.squareSize}px`;
                 square.style.height = `${this.squareSize}px`;
-                square.style.left = `${col * this.squareSize + this.boardOffsetX}px`;
-                square.style.top = `${row * this.squareSize + this.boardOffsetY}px`;
+                
+                // Position squares inside the decorative border
+                square.style.left = `${this.borderSize + (col * this.squareSize)}px`;
+                square.style.top = `${this.borderSize + (row * this.squareSize)}px`;
+                
                 square.dataset.row = row;
                 square.dataset.col = col;
                 
@@ -66,10 +73,7 @@ export class Board {
                 square.style.cursor = 'pointer';
                 square.style.border = 'none';
                 
-                // Debug: uncomment the next line to see square boundaries
-                // square.style.border = '1px solid rgba(255,0,0,0.3)';
-                
-                // Only dark squares are playable in draughts (flipped board)
+                // Only dark squares are playable
                 if (isDarkSquare(row, col)) {
                     square.classList.add('playable');
                 }
@@ -78,7 +82,37 @@ export class Board {
             }
         }
 
-        console.log('Board created with precise positioning for flipped board');
+        console.log('Board created with wooden board dimensions');
+    }
+
+    // Method to adjust border size if needed
+    adjustBorderSize(newBorderSize) {
+        this.borderSize = newBorderSize;
+        this.playingAreaSize = this.totalBoardSize - (this.borderSize * 2);
+        this.squareSize = this.playingAreaSize / BOARD_SIZE;
+        
+        console.log(`Border adjusted to ${newBorderSize}px, new square size: ${this.squareSize}px`);
+        
+        // Recreate board with new dimensions
+        this.createBoard();
+        
+        // Re-render pieces
+        if (window.game) {
+            this.updatePosition(window.game.getGamePosition());
+        }
+    }
+
+    // Method to fine-tune piece positioning only
+    adjustPiecePositioning(offsetX, offsetY) {
+        this.pieceOffsetX = offsetX;
+        this.pieceOffsetY = offsetY;
+        
+        // Re-render pieces with new offsets
+        if (window.game) {
+            this.updatePosition(window.game.getGamePosition());
+        }
+        
+        console.log(`Piece positioning adjusted: X=${offsetX}, Y=${offsetY}`);
     }
 
     attachEventListeners() {
@@ -92,7 +126,6 @@ export class Board {
             this.handleSquareClick(row, col);
         });
 
-        // Improved drag and drop
         this.container.addEventListener('dragstart', (event) => {
             const piece = event.target.closest('.piece');
             if (!piece) return;
@@ -108,7 +141,6 @@ export class Board {
                 offsetY: event.offsetY 
             }));
             
-            // Visual feedback
             piece.style.opacity = '0.5';
             this.selectedSquare = { row, col };
         });
@@ -132,7 +164,6 @@ export class Board {
                 const fromRow = dragData.row;
                 const fromCol = dragData.col;
                 
-                // Reset piece opacity
                 const piece = this.container.querySelector(`[data-row="${fromRow}"][data-col="${fromCol}"] .piece`);
                 if (piece) piece.style.opacity = '1';
                 
@@ -148,7 +179,6 @@ export class Board {
         });
 
         this.container.addEventListener('dragend', (event) => {
-            // Reset any drag visual effects
             const pieces = this.container.querySelectorAll('.piece');
             pieces.forEach(piece => piece.style.opacity = '1');
         });
@@ -156,17 +186,14 @@ export class Board {
 
     handleSquareClick(row, col) {
         if (this.selectedSquare) {
-            // If clicking a different square, try to move
             if (this.selectedSquare.row !== row || this.selectedSquare.col !== col) {
                 this.emit('moveAttempt', {
                     from: { row: this.selectedSquare.row, col: this.selectedSquare.col },
                     to: { row, col }
                 });
             }
-            // Deselect
             this.clearSelection();
         } else {
-            // Select this square if it has a piece
             const piece = this.getPieceAt(row, col);
             if (piece) {
                 this.selectSquare(row, col);
@@ -182,7 +209,6 @@ export class Board {
         const square = this.container.querySelector(`[data-row="${row}"][data-col="${col}"]`);
         if (square) {
             square.classList.add('selected');
-            // Add a golden border for selection
             square.style.boxShadow = 'inset 0 0 0 4px #FFD700';
             square.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
         }
@@ -206,11 +232,9 @@ export class Board {
     }
 
     updatePosition(position) {
-        // Clear existing pieces
         const existingPieces = this.container.querySelectorAll('.piece');
         existingPieces.forEach(piece => piece.remove());
 
-        // Add pieces based on position
         for (let row = 0; row < BOARD_SIZE; row++) {
             for (let col = 0; col < BOARD_SIZE; col++) {
                 const piece = position.pieces[row][col];
@@ -229,10 +253,8 @@ export class Board {
         pieceEl.className = this.getPieceClass(pieceType);
         pieceEl.style.position = 'absolute';
         
-        // Calculate precise piece positioning
-        const pieceSize = this.squareSize * 0.75; // 75% of square size for better fit
-        
-        // Center the piece in the square, plus any additional offsets
+        // Size pieces to fit nicely in the calculated square size
+        const pieceSize = this.squareSize * 0.8;
         const baseCenterOffsetX = (this.squareSize - pieceSize) / 2;
         const baseCenterOffsetY = (this.squareSize - pieceSize) / 2;
         
@@ -249,7 +271,6 @@ export class Board {
         pieceEl.style.zIndex = '10';
         pieceEl.draggable = true;
         
-        // Enhanced piece styling to look more realistic
         if (pieceType === PIECE.WHITE || pieceType === PIECE.WHITE_KING) {
             pieceEl.style.background = 'radial-gradient(circle at 30% 30%, #ffffff, #e0e0e0, #c0c0c0)';
             pieceEl.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.8)';
@@ -258,7 +279,6 @@ export class Board {
             pieceEl.style.boxShadow = '0 4px 8px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.2)';
         }
 
-        // Add crown for kings
         if (pieceType === PIECE.WHITE_KING || pieceType === PIECE.BLACK_KING) {
             const crown = document.createElement('div');
             crown.className = 'crown';
@@ -281,35 +301,6 @@ export class Board {
         }
 
         square.appendChild(pieceEl);
-    }
-
-    // Method to adjust positioning if pieces are still not perfectly centered
-    adjustPiecePositioning(offsetX = 0, offsetY = 0) {
-        this.pieceOffsetX = offsetX;
-        this.pieceOffsetY = offsetY;
-        
-        // Re-render all pieces with new positioning
-        if (window.game) {
-            this.updatePosition(window.game.getGamePosition());
-        }
-        
-        console.log(`Piece positioning adjusted: X=${offsetX}, Y=${offsetY}`);
-    }
-
-    // Method to adjust board grid positioning
-    adjustBoardGrid(offsetX = 0, offsetY = 0) {
-        this.boardOffsetX = offsetX;
-        this.boardOffsetY = offsetY;
-        
-        // Re-create the board with new grid positioning
-        this.createBoard();
-        
-        // Re-render pieces
-        if (window.game) {
-            this.updatePosition(window.game.getGamePosition());
-        }
-        
-        console.log(`Board grid adjusted: X=${offsetX}, Y=${offsetY}`);
     }
 
     getPieceClass(piece) {

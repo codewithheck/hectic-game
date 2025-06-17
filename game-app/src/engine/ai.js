@@ -158,6 +158,8 @@ export class AI {
             time: Date.now() - startTime
         };
 
+        this.cache.cleanup(); // <-- ADDED: Clean up cache after each move search
+
         return bestMove;
     }
 

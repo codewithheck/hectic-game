@@ -4,6 +4,7 @@
  * so no additional flipping is needed in the code.
  * @author codewithheck
  * Created: 2025-06-16 19:42:19 UTC
+ * Updated: 2025-06-17 12:28:27 UTC
  */
 
 .game-board {
@@ -12,7 +13,7 @@
     width: 500px;
     height: 500px;
     border: 2px solid #2c3e50;
-    background-image: url('../images/board.png');
+    background-image: url('../../../assets/images/flipped_board.jpg');
     background-size: cover;
     position: relative;
     user-select: none;

@@ -7,25 +7,440 @@
     <meta name="created" content="2025-06-16 20:34:35">
     <title>Hectic - International Draughts</title>
     
-    <!-- Main stylesheet -->
-    <link rel="stylesheet" href="css/style.css">
-    
-    <!-- View-specific styles -->
-    <link rel="stylesheet" href="src/views/styles/board.css">
-    <link rel="stylesheet" href="src/views/styles/history.css">
-    <link rel="stylesheet" href="src/views/styles/notification.css">
-    <link rel="stylesheet" href="src/views/styles/renderer.css">
-    <link rel="stylesheet" href="src/views/styles/settings.css">
-    <link rel="stylesheet" href="src/views/styles/ui.css">
-    
     <!-- Third-party libraries -->
     <script src="vendors/html2canvas.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        /* Reorganized Layout for Hectic Draughts Game */
+        /* Board on right, all controls on left */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            overflow-x: auto;
+        }
+
+        /* Main game container - horizontal layout */
+        .game-container {
+            display: flex;
+            min-height: 100vh;
+            gap: 20px;
+            padding: 20px;
+            align-items: flex-start;
+        }
+
+        /* Left side - Combined controls and info */
+        .left-panel {
+            flex: 0 0 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* Right side - Game board */
+        .board-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Control sections styling */
+        .control-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .control-section h3 {
+            margin-bottom: 15px;
+            color: #495057;
+            font-size: 16px;
+            font-weight: 600;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+
+        /* Difficulty selector */
+        .difficulty-selector select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            background: white;
+            font-size: 14px;
+        }
+
+        /* Game options */
+        .game-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        .option span {
+            font-size: 14px;
+            color: #495057;
+        }
+
+        /* Position controls */
+        .position-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-button {
+            padding: 8px 16px;
+            border: 1px solid #007bff;
+            background: white;
+            color: #007bff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .control-button:hover {
+            background: #007bff;
+            color: white;
+        }
+
+        .control-button.active {
+            background: #007bff;
+            color: white;
+        }
+
+        .button-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* PNG controls */
+        .png-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .file-label {
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Player info styling */
+        .player-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .player-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .player-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .timer {
+            background: #007bff;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .timer.warning {
+            background: #dc3545;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Game board container */
+        .game-board-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* Game board */
+        .game-board {
+            position: relative;
+            border: 3px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        /* Game controls */
+        .game-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .nav-button {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #007bff;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .nav-button:hover {
+            background: #007bff;
+            color: white;
+        }
+
+        .nav-button img {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Move log styling */
+        .move-log {
+            margin-bottom: 20px;
+        }
+
+        .move-log h3 {
+            margin-bottom: 10px;
+            color: #495057;
+            font-size: 16px;
+        }
+
+        .scrollable {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            background: white;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .move-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .move-entry:last-child {
+            border-bottom: none;
+        }
+
+        .move-entry:hover {
+            background: #f8f9fa;
+        }
+
+        /* Analysis section */
+        .analysis {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .analysis h3 {
+            margin-bottom: 15px;
+            color: #495057;
+            font-size: 16px;
+            font-weight: 600;
+            border-bottom: 2px solid #28a745;
+            padding-bottom: 5px;
+        }
+
+        .evaluation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .evaluation span:first-child {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .evaluation span:last-child {
+            font-weight: bold;
+            color: #495057;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .notification.info {
+            background: #17a2b8;
+        }
+
+        .notification.success {
+            background: #28a745;
+        }
+
+        .notification.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        .notification.hidden {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        /* Footer */
+        .game-footer {
+            margin-top: auto;
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .footer-content {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .footer-content a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .footer-content a:hover {
+            text-decoration: underline;
+        }
+
+        /* Board square selection and highlighting */
+        .board-square.selected {
+            box-shadow: inset 0 0 0 4px #FFD700 !important;
+            background-color: rgba(255, 215, 0, 0.3) !important;
+        }
+
+        .board-square.legal-move {
+            box-shadow: inset 0 0 0 4px #00FF00 !important;
+            background-color: rgba(0, 255, 0, 0.2) !important;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .left-panel {
+                flex: 0 0 300px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .game-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .left-panel {
+                flex: none;
+                width: 100%;
+                max-width: 600px;
+                max-height: none;
+                order: 2;
+            }
+            
+            .board-panel {
+                order: 1;
+                width: 100%;
+            }
+            
+            .game-board {
+                max-width: 90vw;
+                max-height: 90vw;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="game-container">
-        <!-- Left Panel: Game Controls -->
-        <div class="control-panel">
-            <div class="difficulty-selector">
+        <!-- Left Panel: All Controls and Information -->
+        <div class="left-panel">
+            <!-- AI Difficulty -->
+            <div class="control-section difficulty-selector">
                 <h3>AI Difficulty</h3>
                 <select id="difficulty-level">
                     <option value="1">Beginner</option>
@@ -37,7 +452,8 @@
                 </select>
             </div>
 
-            <div class="game-options">
+            <!-- Game Options -->
+            <div class="control-section game-options">
                 <h3>Game Options</h3>
                 <label class="option">
                     <input type="checkbox" id="max-capture-rule">
@@ -49,10 +465,10 @@
                 </label>
             </div>
 
-            <div class="position-controls">
+            <!-- Position Controls -->
+            <div class="control-section position-controls">
                 <h3>Position</h3>
                 <button id="edit-mode" class="control-button">
-                    <img src="assets/images/edit.png" alt="Edit" class="button-icon">
                     <span>Edit Position</span>
                 </button>
                 <button id="import-fen" class="control-button">
@@ -71,60 +487,15 @@
                     </label>
                 </div>
             </div>
-        </div>
 
-        <!-- Center: Main Game Board -->
-        <div class="game-board-container">
-            <div class="player-info top">
-                <span class="player-name">Black</span>
-                <div class="player-status">
-                    <span class="captured-pieces" id="black-captured">Captured: 0</span>
-                    <span class="timer" id="black-timer">01:00</span>
-                </div>
-            </div>
-
-            <div id="game-board" class="game-board">
-                <!-- Board will be dynamically generated by JavaScript -->
-            </div>
-
-            <div class="player-info bottom">
-                <span class="player-name">White</span>
-                <div class="player-status">
-                    <span class="captured-pieces" id="white-captured">Captured: 0</span>
-                    <span class="timer" id="white-timer">01:00</span>
-                </div>
-            </div>
-
-            <div class="game-controls">
-                <button id="first-move" class="nav-button" title="First Move">
-                    <img src="assets/images/first.png" alt="First" class="button-icon">
-                </button>
-                <button id="prev-move" class="nav-button" title="Previous Move">
-                    <img src="assets/images/undo.png" alt="Previous" class="button-icon">
-                </button>
-                <button id="undo" class="nav-button" title="Undo Move">
-                    <img src="assets/images/undo.png" alt="Undo" class="button-icon">
-                </button>
-                <button id="redo" class="nav-button" title="Redo Move">
-                    <img src="assets/images/redo.png" alt="Redo" class="button-icon">
-                </button>
-                <button id="next-move" class="nav-button" title="Next Move">
-                    <img src="assets/images/redo.png" alt="Next" class="button-icon">
-                </button>
-                <button id="last-move" class="nav-button" title="Last Move">
-                    <img src="assets/images/last.png" alt="Last" class="button-icon">
-                </button>
-            </div>
-        </div>
-
-        <!-- Right Panel: Game Information -->
-        <div class="info-panel">
-            <div class="move-log">
+            <!-- Move History -->
+            <div class="control-section move-log">
                 <h3>Move Log</h3>
                 <div id="move-history" class="scrollable"></div>
             </div>
 
-            <div class="analysis">
+            <!-- Analysis -->
+            <div class="control-section analysis">
                 <h3>Analysis</h3>
                 <div class="evaluation">
                     <span>Best Move: </span>
@@ -137,6 +508,56 @@
                 <div class="evaluation">
                     <span>Depth: </span>
                     <span id="search-depth">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Game Board -->
+        <div class="board-panel">
+            <!-- Player Info - Black (Top) -->
+            <div class="player-info">
+                <span class="player-name">Black</span>
+                <div class="player-status">
+                    <span class="captured-pieces" id="black-captured">Captured: 0</span>
+                    <span class="timer" id="black-timer">01:00</span>
+                </div>
+            </div>
+
+            <!-- Game Board Container -->
+            <div class="game-board-container">
+                <div id="game-board" class="game-board">
+                    <!-- Board will be dynamically generated by JavaScript -->
+                </div>
+
+                <!-- Game Navigation Controls -->
+                <div class="game-controls">
+                    <button id="first-move" class="nav-button" title="First Move">
+                        <span>⏮</span>
+                    </button>
+                    <button id="prev-move" class="nav-button" title="Previous Move">
+                        <span>⏪</span>
+                    </button>
+                    <button id="undo" class="nav-button" title="Undo Move">
+                        <span>↶</span>
+                    </button>
+                    <button id="redo" class="nav-button" title="Redo Move">
+                        <span>↷</span>
+                    </button>
+                    <button id="next-move" class="nav-button" title="Next Move">
+                        <span>⏩</span>
+                    </button>
+                    <button id="last-move" class="nav-button" title="Last Move">
+                        <span>⏭</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Player Info - White (Bottom) -->
+            <div class="player-info">
+                <span class="player-name">White</span>
+                <div class="player-status">
+                    <span class="captured-pieces" id="white-captured">Captured: 0</span>
+                    <span class="timer" id="white-timer">01:00</span>
                 </div>
             </div>
         </div>

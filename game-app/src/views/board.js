@@ -64,40 +64,43 @@ export class Board {
     }
 
     attachEventListeners() {
-        this.boardElement.addEventListener('click', (e) => {
-            const square = e.target.closest('.square');
-            if (!square || !this.callbacks.onSquareClick) return;
+        this.boardElement.addEventListener('click', this.handleBoardEvents);
+        this.boardElement.addEventListener('dragstart', this.handleBoardEvents);
+        this.boardElement.addEventListener('dragover', this.handleBoardEvents);
+        this.boardElement.addEventListener('drop', this.handleBoardEvents);
+    }
 
-            const row = parseInt(square.dataset.row);
-            const col = parseInt(square.dataset.col);
-            this.callbacks.onSquareClick(row, col);
-        });
+    handleBoardEvents = (event) => {
+        const square = event.target.closest('.square');
+        if (!square) return;
 
-        this.boardElement.addEventListener('dragstart', (e) => {
-            const square = e.target.closest('.square');
-            if (!square || !this.callbacks.onPieceDragStart) return;
+        const row = parseInt(square.dataset.row);
+        const col = parseInt(square.dataset.col);
 
-            const row = parseInt(square.dataset.row);
-            const col = parseInt(square.dataset.col);
-            this.callbacks.onPieceDragStart(row, col, e);
-        });
-
-        this.boardElement.addEventListener('dragover', (e) => {
-            if (this.callbacks.onPieceDragOver) {
-                e.preventDefault();
-                this.callbacks.onPieceDragOver(e);
-            }
-        });
-
-        this.boardElement.addEventListener('drop', (e) => {
-            const square = e.target.closest('.square');
-            if (!square || !this.callbacks.onPieceDrop) return;
-
-            e.preventDefault();
-            const row = parseInt(square.dataset.row);
-            const col = parseInt(square.dataset.col);
-            this.callbacks.onPieceDrop(row, col, e);
-        });
+        switch(event.type) {
+            case 'click':
+                if (this.callbacks.onSquareClick) {
+                    this.callbacks.onSquareClick(row, col, event);
+                }
+                break;
+            case 'dragstart':
+                if (this.callbacks.onPieceDragStart) {
+                    this.callbacks.onPieceDragStart(row, col, event);
+                }
+                break;
+            case 'dragover':
+                if (this.callbacks.onPieceDragOver) {
+                    event.preventDefault();
+                    this.callbacks.onPieceDragOver(event, square, row, col);
+                }
+                break;
+            case 'drop':
+                if (this.callbacks.onPieceDrop) {
+                    event.preventDefault();
+                    this.callbacks.onPieceDrop(row, col, event);
+                }
+                break;
+        }
     }
 
     setCallbacks(callbacks) {

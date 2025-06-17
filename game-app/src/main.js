@@ -1,201 +1,139 @@
+/**
+ * International Draughts Game - Main Entry Point
+ * @author codewithheck
+ * Created: 2025-06-17 05:42:40 UTC
+ */
+
+import { Board } from './view/board.js';
+import { UI } from './view/ui.js';
 import { Game } from './engine/game.js';
 import { AI } from './engine/ai.js';
-import { Renderer } from './views/renderer.js';
-import { UI } from './views/ui.js';
-import { Board } from './views/board.js';
+import { BOARD_SIZE, PLAYER_COLOR, GAME_MODE } from './engine/constants.js';
+import OpeningBook from './utils/opening-book.js';
 
-// Main application controller for Hectic Game
 class DraughtsGame {
     constructor() {
-        // Core logic
+        this.initialize();
+    }
+
+    async initialize() {
         this.game = new Game();
-        this.ai = new AI();
-
-        // DOM elements
-        this.boardElement = document.getElementById('game-board'); // The main board
-        this.historyElement = document.getElementById('move-history'); // Move log
-        this.statusElement = document.getElementById('status'); // Optional status bar
-
-        // Renderer: centralizes all rendering
-        this.renderer = new Renderer(
-            this.game,
-            this.boardElement,
-            this.historyElement,
-            this.statusElement
-        );
-
-        // UI: handles control buttons and options
+        this.board = new Board();
         this.ui = new UI();
+        this.ai = new AI();
+        
+        await this.ai.initialize();
+        this.bindEvents();
+        this.game.newGame();
+        this.board.initialize();
+        this.ui.initialize();
+        this.updateDisplay();
+    }
 
-        // Board: handles board user interactions
-        this.board = new Board(this.boardElement);
-
-        // Board click event
-        this.board.setCallbacks({
-            onSquareClick: (row, col) => this.handleSquareClick(row, col),
-            onPieceDragStart: (row, col, event) => this.handlePieceDragStart(row, col, event),
-            onPieceDragOver: (event, square, row, col) => this.handlePieceDragOver(event, square, row, col),
-            onPieceDrop: (row, col, event) => this.handlePieceDrop(row, col, event)
+    bindEvents() {
+        this.board.on('squareClick', (square) => {
+            if (this.game.isPlayerTurn()) {
+                this.handleSquareClick(square);
+            }
         });
 
-        // UI event bindings (buttons, FEN import/export, etc)
-        this.attachUIEvents();
+        this.ui.on('difficultyChange', (level) => {
+            this.ai.setDifficulty(level);
+        });
 
-        // Initial game render
-        this.renderer.renderAll();
+        this.ui.on('maxCaptureToggle', (enabled) => {
+            this.game.setMaxCaptureRule(enabled);
+        });
+
+        this.ui.on('timeControlToggle', (enabled) => {
+            this.game.setTimeControl(enabled);
+        });
+
+        this.ui.on('editModeToggle', (enabled) => {
+            this.board.setEditMode(enabled);
+            this.game.setEditMode(enabled);
+        });
+
+        this.ui.on('undo', () => {
+            this.game.undo();
+            this.updateDisplay();
+        });
+
+        this.ui.on('redo', () => {
+            this.game.redo();
+            this.updateDisplay();
+        });
+
+        this.ui.on('firstMove', () => {
+            this.game.goToStart();
+            this.updateDisplay();
+        });
+
+        this.ui.on('lastMove', () => {
+            this.game.goToEnd();
+            this.updateDisplay();
+        });
+
+        this.ui.on('importFEN', async () => {
+            const fen = await this.ui.getFENInput();
+            if (fen) {
+                this.game.loadFEN(fen);
+                this.updateDisplay();
+            }
+        });
+
+        this.ui.on('exportFEN', () => {
+            const fen = this.game.getFEN();
+            this.ui.showFEN(fen);
+        });
+
+        this.ui.on('savePNG', () => {
+            this.board.saveAsPNG();
+        });
+
+        this.ui.on('loadPNG', async (imageFile) => {
+            const position = await this.board.loadFromPNG(imageFile);
+            if (position) {
+                this.game.setPosition(position);
+                this.updateDisplay();
+            }
+        });
     }
 
-    async handleSquareClick(row, col) {
-        const move = this.game.handleSquareSelection({ row, col });
+    async handleSquareClick(square) {
+        const move = this.game.handleSquareSelection(square);
+        
         if (move) {
-            this.renderer.renderAll();
+            this.updateDisplay();
+            
             if (!this.game.isGameOver() && !this.game.isPlayerTurn()) {
-                await this.handleAIMove();
-            }
-        } else {
-            this.renderer.renderAll();
-        }
-    }
-
-    async handlePieceDragStart(row, col, event) {
-        // Selection logic is handled in renderer/UI, but you can highlight here if needed
-    }
-
-    async handlePieceDragOver(event, square, row, col) {
-        // Optionally highlight drop targets here
-        event.preventDefault();
-    }
-
-    async handlePieceDrop(row, col, event) {
-        const data = event.dataTransfer ? event.dataTransfer.getData('text/plain') : null;
-        let from;
-        if (data) {
-            try {
-                from = JSON.parse(data);
-            } catch {
-                from = null;
-            }
-        }
-        // Fallback: use last selected piece if no drag data
-        if (!from && this.game.selectedSquare) {
-            from = this.game.selectedSquare;
-        }
-        if (!from) return;
-
-        // Try making the move
-        this.game.handleSquareSelection(from); // select source
-        const move = this.game.handleSquareSelection({ row, col }); // select destination
-        if (move) {
-            this.renderer.renderAll();
-            if (!this.game.isGameOver() && !this.game.isPlayerTurn()) {
-                await this.handleAIMove();
-            }
-        } else {
-            this.renderer.renderAll();
-        }
-    }
-
-    async handleAIMove() {
-        const aiMove = await this.ai.getMove(this.game.getPosition());
-        if (aiMove) {
-            this.game.makeMove(aiMove);
-            this.renderer.renderAll();
-        }
-    }
-
-    attachUIEvents() {
-        // New Game
-        const newGameBtn = document.getElementById('new-game');
-        if (newGameBtn) {
-            newGameBtn.addEventListener('click', () => {
-                this.game.reset();
-                this.renderer.renderAll();
-            });
-        }
-        // Undo
-        const undoBtn = document.getElementById('undo');
-        if (undoBtn) {
-            undoBtn.addEventListener('click', () => {
-                this.game.undo();
-                this.renderer.renderAll();
-            });
-        }
-        // Redo
-        const redoBtn = document.getElementById('redo');
-        if (redoBtn) {
-            redoBtn.addEventListener('click', () => {
-                this.game.redo();
-                this.renderer.renderAll();
-            });
-        }
-        // Import FEN
-        const importFENBtn = document.getElementById('import-fen');
-        if (importFENBtn) {
-            importFENBtn.addEventListener('click', () => {
-                const fen = window.prompt('Paste FEN string:');
-                if (fen) {
-                    this.game.loadFEN(fen);
-                    this.renderer.renderAll();
+                this.ui.showThinking(true);
+                const aiMove = await this.ai.getMove(this.game.getPosition());
+                this.ui.showThinking(false);
+                
+                if (aiMove) {
+                    this.game.makeMove(aiMove);
+                    this.updateDisplay();
                 }
-            });
+            }
         }
-        // Export FEN
-        const exportFENBtn = document.getElementById('export-fen');
-        if (exportFENBtn) {
-            exportFENBtn.addEventListener('click', () => {
-                const fen = this.game.getFEN();
-                window.prompt('FEN string:', fen);
-            });
-        }
-        // First/Prev/Next/Last move navigation (if you use these)
-        const firstMoveBtn = document.getElementById('first-move');
-        const prevMoveBtn = document.getElementById('prev-move');
-        const nextMoveBtn = document.getElementById('next-move');
-        const lastMoveBtn = document.getElementById('last-move');
-        if (firstMoveBtn) {
-            firstMoveBtn.addEventListener('click', () => {
-                this.game.jumpToStart();
-                this.renderer.renderAll();
-            });
-        }
-        if (prevMoveBtn) {
-            prevMoveBtn.addEventListener('click', () => {
-                this.game.previousMove();
-                this.renderer.renderAll();
-            });
-        }
-        if (nextMoveBtn) {
-            nextMoveBtn.addEventListener('click', () => {
-                this.game.nextMove();
-                this.renderer.renderAll();
-            });
-        }
-        if (lastMoveBtn) {
-            lastMoveBtn.addEventListener('click', () => {
-                this.game.jumpToEnd();
-                this.renderer.renderAll();
-            });
-        }
-        // Difficulty selector (if present)
-        const difficultySelect = document.getElementById('difficulty-level');
-        if (difficultySelect) {
-            difficultySelect.addEventListener('change', (e) => {
-                const level = parseInt(e.target.value, 10);
-                this.ai.setDifficulty(level);
-            });
-        }
-        // Max capture rule (if present)
-        const maxCaptureCheckbox = document.getElementById('max-capture-rule');
-        if (maxCaptureCheckbox) {
-            maxCaptureCheckbox.addEventListener('change', (e) => {
-                this.game.maxCaptureRule = e.target.checked;
-                this.renderer.renderAll();
-            });
+    }
+
+    updateDisplay() {
+        this.board.updatePosition(this.game.getPosition());
+        this.ui.updateMoveHistory(this.game.getMoveHistory());
+        this.ui.updateTimers(this.game.getTimers());
+        this.ui.updateGameStatus(this.game.getStatus());
+        
+        const evaluation = this.ai.getLastEvaluation();
+        if (evaluation) {
+            this.ui.updateAnalysis(evaluation);
         }
     }
 }
 
-// Initialize game on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     window.game = new DraughtsGame();
 });
+
+export { DraughtsGame };

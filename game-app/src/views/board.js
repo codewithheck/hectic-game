@@ -1,9 +1,10 @@
 /**
  * Board class for hectic-game
  * Uses the provided flipped_board.jpg image
+ * FLIPPED BOARD VERSION
  */
 
-import { BOARD_SIZE, PIECE } from '../engine/constants.js';
+import { BOARD_SIZE, PIECE, isDarkSquare } from '../engine/constants.js';
 
 export class Board {
     constructor() {
@@ -46,7 +47,7 @@ export class Board {
         for (let row = 0; row < BOARD_SIZE; row++) {
             for (let col = 0; col < BOARD_SIZE; col++) {
                 const square = document.createElement('div');
-                square.className = `board-square ${(row + col) % 2 === 1 ? 'dark' : 'light'}`;
+                square.className = `board-square ${isDarkSquare(row, col) ? 'dark' : 'light'}`;
                 square.style.position = 'absolute';
                 square.style.width = `${this.squareSize}px`;
                 square.style.height = `${this.squareSize}px`;
@@ -60,8 +61,8 @@ export class Board {
                 square.style.cursor = 'pointer';
                 square.style.border = 'none';
                 
-                // Only dark squares are playable in draughts
-                if ((row + col) % 2 === 1) {
+                // Only dark squares are playable in draughts (flipped board)
+                if (isDarkSquare(row, col)) {
                     square.classList.add('playable');
                 }
                 
@@ -69,7 +70,7 @@ export class Board {
             }
         }
 
-        console.log('Board created with background image');
+        console.log('Board created with flipped board background image');
     }
 
     attachEventListeners() {

@@ -1,7 +1,7 @@
 /**
  * International Draughts (10x10) Game Constants
  * Last Updated: 2025-06-16 18:46:49 UTC
- * Note: Board is MIRROR FLIPPED HORIZONTALLY - FIXED
+ * FLIPPED BOARD - Dark squares on bottom-right corners
  */
 
 // Board configuration
@@ -154,36 +154,42 @@ export const POSITION_VALUE = {
     PROMOTION: 15    // Squares close to promotion
 };
 
-// Direction vectors for moves (Standard international draughts)
+// Direction vectors for moves (FLIPPED BOARD)
 export const DIRECTIONS = {
     WHITE_MOVES: [
-        { dx: -1, dy: -1 },  // Up-left
-        { dx: 1, dy: -1 }    // Up-right
+        { dx: 1, dy: -1 },   // Up-right (flipped)
+        { dx: -1, dy: -1 }   // Up-left (flipped)
     ],
     BLACK_MOVES: [
-        { dx: -1, dy: 1 },   // Down-left
-        { dx: 1, dy: 1 }     // Down-right
+        { dx: 1, dy: 1 },    // Down-right (flipped)  
+        { dx: -1, dy: 1 }    // Down-left (flipped)
     ],
     KING_MOVES: [
-        { dx: -1, dy: -1 },  // Up-left
         { dx: 1, dy: -1 },   // Up-right
-        { dx: -1, dy: 1 },   // Down-left
-        { dx: 1, dy: 1 }     // Down-right
+        { dx: -1, dy: -1 },  // Up-left
+        { dx: 1, dy: 1 },    // Down-right
+        { dx: -1, dy: 1 }    // Down-left
     ]
 };
 
-// Square numbering (Standard International Draughts notation)
+// Helper function to check if square is dark on flipped board
+export const isDarkSquare = (row, col) => {
+    // On flipped board, dark squares are where (row + col) % 2 === 0
+    return (row + col) % 2 === 0;
+};
+
+// Square numbering for flipped board (adjusted)
 export const SQUARE_NUMBERS = [
-    0,  1,  0,  2,  0,  3,  0,  4,  0,  5,
-    6,  0,  7,  0,  8,  0,  9,  0,  10, 0,
-    0,  11, 0,  12, 0,  13, 0,  14, 0,  15,
-    16, 0,  17, 0,  18, 0,  19, 0,  20, 0,
-    0,  21, 0,  22, 0,  23, 0,  24, 0,  25,
-    26, 0,  27, 0,  28, 0,  29, 0,  30, 0,
-    0,  31, 0,  32, 0,  33, 0,  34, 0,  35,
-    36, 0,  37, 0,  38, 0,  39, 0,  40, 0,
-    0,  41, 0,  42, 0,  43, 0,  44, 0,  45,
-    46, 0,  47, 0,  48, 0,  49, 0,  50, 0
+    5,  0,  4,  0,  3,  0,  2,  0,  1,  0,
+    0,  10, 0,  9,  0,  8,  0,  7,  0,  6,
+    15, 0,  14, 0,  13, 0,  12, 0,  11, 0,
+    0,  20, 0,  19, 0,  18, 0,  17, 0,  16,
+    25, 0,  24, 0,  23, 0,  22, 0,  21, 0,
+    0,  30, 0,  29, 0,  28, 0,  27, 0,  26,
+    35, 0,  34, 0,  33, 0,  32, 0,  31, 0,
+    0,  40, 0,  39, 0,  38, 0,  37, 0,  36,
+    45, 0,  44, 0,  43, 0,  42, 0,  41, 0,
+    0,  50, 0,  49, 0,  48, 0,  47, 0,  46
 ];
 
 // DOM element IDs
@@ -201,9 +207,9 @@ export const DOM_IDS = {
     PNG_PROCESSOR: 'png-processor'
 };
 
-// FEN notation constants (Standard International Draughts starting position)
+// FEN notation constants (FLIPPED BOARD)
 export const FEN = {
-    // Standard starting position with 20 pieces each
+    // Starting position for flipped board
     START_POSITION: 'W:W31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50:B1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20',
     PIECE_CHARS: {
         [PIECE.WHITE]: 'w',

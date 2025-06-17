@@ -1,6 +1,6 @@
 /**
  * Positioning Adjustment Tool
- * Temporary tool to help fine-tune board and piece positioning
+ * Fine-tune board and piece positioning
  */
 
 function createPositioningTool() {
@@ -9,7 +9,7 @@ function createPositioningTool() {
     toolPanel.id = 'positioning-tool';
     toolPanel.style.cssText = `
         position: fixed;
-        top: 20px;
+        top: 80px;
         left: 20px;
         background: white;
         border: 2px solid #007bff;
@@ -24,16 +24,16 @@ function createPositioningTool() {
 
     toolPanel.innerHTML = `
         <div style="margin-bottom: 15px; font-weight: bold; color: #007bff; border-bottom: 1px solid #007bff; padding-bottom: 5px;">
-            Positioning Tool
+            🎯 Positioning Tool
         </div>
         
         <div style="margin-bottom: 15px;">
             <label style="display: block; margin-bottom: 5px; font-weight: 500;">Piece Position:</label>
-            <div style="display: flex; gap: 10px; margin-bottom: 5px;">
-                <button onclick="adjustPieces(-1, 0)" style="padding: 5px 10px; border: 1px solid #007bff; background: white; cursor: pointer;">← X</button>
-                <button onclick="adjustPieces(1, 0)" style="padding: 5px 10px; border: 1px solid #007bff; background: white; cursor: pointer;">X →</button>
-                <button onclick="adjustPieces(0, -1)" style="padding: 5px 10px; border: 1px solid #007bff; background: white; cursor: pointer;">↑ Y</button>
-                <button onclick="adjustPieces(0, 1)" style="padding: 5px 10px; border: 1px solid #007bff; background: white; cursor: pointer;">Y ↓</button>
+            <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+                <button onclick="adjustPieces(-1, 0)" style="padding: 5px 8px; border: 1px solid #007bff; background: white; cursor: pointer; border-radius: 3px;">← X</button>
+                <button onclick="adjustPieces(1, 0)" style="padding: 5px 8px; border: 1px solid #007bff; background: white; cursor: pointer; border-radius: 3px;">X →</button>
+                <button onclick="adjustPieces(0, -1)" style="padding: 5px 8px; border: 1px solid #007bff; background: white; cursor: pointer; border-radius: 3px;">↑ Y</button>
+                <button onclick="adjustPieces(0, 1)" style="padding: 5px 8px; border: 1px solid #007bff; background: white; cursor: pointer; border-radius: 3px;">Y ↓</button>
             </div>
             <div style="font-size: 12px; color: #666;">
                 Current: X=<span id="piece-x">0</span>, Y=<span id="piece-y">0</span>
@@ -42,37 +42,37 @@ function createPositioningTool() {
 
         <div style="margin-bottom: 15px;">
             <label style="display: block; margin-bottom: 5px; font-weight: 500;">Board Grid:</label>
-            <div style="display: flex; gap: 10px; margin-bottom: 5px;">
-                <button onclick="adjustBoard(-1, 0)" style="padding: 5px 10px; border: 1px solid #28a745; background: white; cursor: pointer;">← X</button>
-                <button onclick="adjustBoard(1, 0)" style="padding: 5px 10px; border: 1px solid #28a745; background: white; cursor: pointer;">X →</button>
-                <button onclick="adjustBoard(0, -1)" style="padding: 5px 10px; border: 1px solid #28a745; background: white; cursor: pointer;">↑ Y</button>
-                <button onclick="adjustBoard(0, 1)" style="padding: 5px 10px; border: 1px solid #28a745; background: white; cursor: pointer;">Y ↓</button>
+            <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+                <button onclick="adjustBoard(-1, 0)" style="padding: 5px 8px; border: 1px solid #28a745; background: white; cursor: pointer; border-radius: 3px;">← X</button>
+                <button onclick="adjustBoard(1, 0)" style="padding: 5px 8px; border: 1px solid #28a745; background: white; cursor: pointer; border-radius: 3px;">X →</button>
+                <button onclick="adjustBoard(0, -1)" style="padding: 5px 8px; border: 1px solid #28a745; background: white; cursor: pointer; border-radius: 3px;">↑ Y</button>
+                <button onclick="adjustBoard(0, 1)" style="padding: 5px 8px; border: 1px solid #28a745; background: white; cursor: pointer; border-radius: 3px;">Y ↓</button>
             </div>
             <div style="font-size: 12px; color: #666;">
                 Current: X=<span id="board-x">0</span>, Y=<span id="board-y">0</span>
             </div>
         </div>
 
-        <div style="margin-bottom: 15px;">
-            <button onclick="toggleSquareBorders()" style="padding: 8px 12px; border: 1px solid #ffc107; background: white; cursor: pointer; width: 100%;">
+        <div style="margin-bottom: 10px;">
+            <button onclick="toggleSquareBorders()" style="padding: 6px 10px; border: 1px solid #ffc107; background: white; cursor: pointer; width: 100%; border-radius: 3px; font-size: 12px;">
                 Toggle Square Borders
             </button>
         </div>
 
-        <div style="margin-bottom: 15px;">
-            <button onclick="resetPositions()" style="padding: 8px 12px; border: 1px solid #dc3545; background: white; cursor: pointer; width: 100%;">
-                Reset All
+        <div style="margin-bottom: 10px;">
+            <button onclick="showCurrentValues()" style="padding: 6px 10px; border: 1px solid #6c757d; background: white; cursor: pointer; width: 100%; border-radius: 3px; font-size: 12px;">
+                Show Perfect Values
             </button>
         </div>
 
         <div style="margin-bottom: 10px;">
-            <button onclick="showCurrentValues()" style="padding: 8px 12px; border: 1px solid #6c757d; background: white; cursor: pointer; width: 100%;">
-                Show Values for Code
+            <button onclick="resetPositions()" style="padding: 6px 10px; border: 1px solid #dc3545; background: white; cursor: pointer; width: 100%; border-radius: 3px; font-size: 12px;">
+                Reset All
             </button>
         </div>
 
         <div>
-            <button onclick="removePositioningTool()" style="padding: 8px 12px; border: 1px solid #dc3545; background: #dc3545; color: white; cursor: pointer; width: 100%;">
+            <button onclick="removePositioningTool()" style="padding: 6px 10px; border: 1px solid #dc3545; background: #dc3545; color: white; cursor: pointer; width: 100%; border-radius: 3px; font-size: 12px;">
                 Close Tool
             </button>
         </div>
@@ -89,7 +89,7 @@ let currentBoardY = 0;
 let squareBordersVisible = false;
 
 // Adjust piece positioning
-function adjustPieces(deltaX, deltaY) {
+window.adjustPieces = function(deltaX, deltaY) {
     currentPieceX += deltaX;
     currentPieceY += deltaY;
     
@@ -98,10 +98,11 @@ function adjustPieces(deltaX, deltaY) {
     }
     
     updateDisplayValues();
+    console.log(`Pieces adjusted: X=${currentPieceX}, Y=${currentPieceY}`);
 }
 
 // Adjust board grid positioning
-function adjustBoard(deltaX, deltaY) {
+window.adjustBoard = function(deltaX, deltaY) {
     currentBoardX += deltaX;
     currentBoardY += deltaY;
     
@@ -110,10 +111,11 @@ function adjustBoard(deltaX, deltaY) {
     }
     
     updateDisplayValues();
+    console.log(`Board grid adjusted: X=${currentBoardX}, Y=${currentBoardY}`);
 }
 
 // Toggle square borders for debugging
-function toggleSquareBorders() {
+window.toggleSquareBorders = function() {
     squareBordersVisible = !squareBordersVisible;
     const squares = document.querySelectorAll('.board-square');
     
@@ -124,10 +126,12 @@ function toggleSquareBorders() {
             square.style.border = 'none';
         }
     });
+    
+    console.log(`Square borders ${squareBordersVisible ? 'enabled' : 'disabled'}`);
 }
 
 // Reset all positions
-function resetPositions() {
+window.resetPositions = function() {
     currentPieceX = 0;
     currentPieceY = 0;
     currentBoardX = 0;
@@ -139,35 +143,39 @@ function resetPositions() {
     }
     
     // Remove square borders
-    squareBordersVisible = false;
-    const squares = document.querySelectorAll('.board-square');
-    squares.forEach(square => {
-        square.style.border = 'none';
-    });
+    if (squareBordersVisible) {
+        toggleSquareBorders();
+    }
     
     updateDisplayValues();
+    console.log('All positions reset to default');
 }
 
 // Show current values for code implementation
-function showCurrentValues() {
-    const message = `Current positioning values:
+window.showCurrentValues = function() {
+    const values = {
+        pieceOffsetX: currentPieceX,
+        pieceOffsetY: currentPieceY,
+        boardOffsetX: currentBoardX,
+        boardOffsetY: currentBoardY
+    };
+    
+    const message = `🎯 Perfect Positioning Values Found!
 
 Piece Offsets: X=${currentPieceX}, Y=${currentPieceY}
 Board Offsets: X=${currentBoardX}, Y=${currentBoardY}
 
-To make these permanent, update board.js:
-this.pieceOffsetX = ${currentPieceX};
-this.pieceOffsetY = ${currentPieceY};
-this.boardOffsetX = ${currentBoardX};
-this.boardOffsetY = ${currentBoardY};`;
+Copy these values - I'll help you make them permanent!`;
 
     alert(message);
-    console.log('Positioning Values:', {
-        pieceX: currentPieceX,
-        pieceY: currentPieceY,
-        boardX: currentBoardX,
-        boardY: currentBoardY
-    });
+    console.log('🎯 Perfect positioning values:', values);
+    
+    // Also copy to clipboard if possible
+    if (navigator.clipboard) {
+        const copyText = `pieceOffsetX: ${currentPieceX}, pieceOffsetY: ${currentPieceY}, boardOffsetX: ${currentBoardX}, boardOffsetY: ${currentBoardY}`;
+        navigator.clipboard.writeText(copyText);
+        console.log('📋 Values copied to clipboard!');
+    }
 }
 
 // Update display values in the tool
@@ -184,7 +192,7 @@ function updateDisplayValues() {
 }
 
 // Remove the positioning tool
-function removePositioningTool() {
+window.removePositioningTool = function() {
     const tool = document.getElementById('positioning-tool');
     if (tool) {
         tool.remove();
@@ -194,6 +202,8 @@ function removePositioningTool() {
     if (squareBordersVisible) {
         toggleSquareBorders();
     }
+    
+    console.log('Positioning tool removed');
 }
 
 // Initialize the tool when the game is ready
@@ -204,9 +214,9 @@ function initializePositioningTool() {
             clearInterval(checkGameReady);
             createPositioningTool();
             updateDisplayValues();
-            console.log('Positioning tool ready! Use the floating panel to adjust piece and board positioning.');
+            console.log('🎯 Positioning tool ready! Use the blue panel to fine-tune piece positioning.');
         }
-    }, 100);
+    }, 500);
 }
 
 // Auto-initialize when DOM is ready

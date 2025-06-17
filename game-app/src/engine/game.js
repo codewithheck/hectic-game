@@ -158,6 +158,36 @@ export class Game {
     }
 
     /**
+     * Validates if moving from one square to another is legal for the current player.
+     * @param {Object} from - { row, col }
+     * @param {Object} to - { row, col }
+     * @returns {boolean}
+     */
+    validateMove(from, to) {
+        // Ensure both positions are on the board
+        if (!this.isValidPosition(from.row, from.col) || !this.isValidPosition(to.row, to.col)) {
+            throw new Error('Invalid move: Out of board bounds');
+        }
+        // Get the piece at the source
+        const piece = this.getPiece(from.row, from.col);
+        if (piece === PIECE.NONE) {
+            throw new Error('Invalid move: No piece at source position');
+        }
+        // Check if it's the current player's piece
+        if (!this.isPieceOfCurrentPlayer(piece)) {
+            return false;
+        }
+        // Gather all legal moves and check if the desired move is among them
+        const legalMoves = this.getLegalMoves();
+        return legalMoves.some(move =>
+            move.from.row === from.row &&
+            move.from.col === from.col &&
+            move.to.row === to.row &&
+            move.to.col === to.col
+        );
+    }
+
+    /**
      * Gets all available capture moves
      * @returns {Array} Array of capture moves
      */

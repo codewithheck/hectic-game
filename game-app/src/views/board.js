@@ -1,6 +1,6 @@
 /**
  * Board class for hectic-game
- * Fixed piece positioning and movement
+ * Uses the provided flipped_board.jpg image
  */
 
 import { BOARD_SIZE, PIECE } from '../engine/constants.js';
@@ -12,6 +12,7 @@ export class Board {
         this.editMode = false;
         this.selectedSquare = null;
         this.highlightedSquares = [];
+        this.squareSize = 60; // Adjust this based on your board image size
     }
 
     initialize() {
@@ -27,40 +28,48 @@ export class Board {
 
     createBoard() {
         this.container.innerHTML = '';
+        
+        // Calculate board size to fit the container or use a fixed size
+        const boardSize = 600; // Adjust this to match your image size
+        this.squareSize = boardSize / BOARD_SIZE;
+        
         this.container.style.position = 'relative';
-        this.container.style.width = `${BOARD_SIZE * 60}px`;
-        this.container.style.height = `${BOARD_SIZE * 60}px`;
+        this.container.style.width = `${boardSize}px`;
+        this.container.style.height = `${boardSize}px`;
+        this.container.style.backgroundImage = 'url("assets/images/flipped_board.jpg")';
+        this.container.style.backgroundSize = 'cover';
+        this.container.style.backgroundPosition = 'center';
+        this.container.style.backgroundRepeat = 'no-repeat';
         this.container.style.border = '2px solid #333';
 
-        // Create squares
+        // Create invisible clickable squares over the board image
         for (let row = 0; row < BOARD_SIZE; row++) {
             for (let col = 0; col < BOARD_SIZE; col++) {
                 const square = document.createElement('div');
                 square.className = `board-square ${(row + col) % 2 === 1 ? 'dark' : 'light'}`;
                 square.style.position = 'absolute';
-                square.style.width = '60px';
-                square.style.height = '60px';
-                square.style.left = `${col * 60}px`;
-                square.style.top = `${row * 60}px`;
+                square.style.width = `${this.squareSize}px`;
+                square.style.height = `${this.squareSize}px`;
+                square.style.left = `${col * this.squareSize}px`;
+                square.style.top = `${row * this.squareSize}px`;
                 square.dataset.row = row;
                 square.dataset.col = col;
                 
-                // Add basic styling
-                square.style.border = '1px solid #333';
-                square.style.boxSizing = 'border-box';
+                // Make squares transparent but clickable
+                square.style.backgroundColor = 'transparent';
                 square.style.cursor = 'pointer';
+                square.style.border = 'none';
                 
                 // Only dark squares are playable in draughts
                 if ((row + col) % 2 === 1) {
-                    square.style.backgroundColor = '#8B4513';
                     square.classList.add('playable');
-                } else {
-                    square.style.backgroundColor = '#F5DEB3';
                 }
                 
                 this.container.appendChild(square);
             }
         }
+
+        console.log('Board created with background image');
     }
 
     attachEventListeners() {
@@ -164,7 +173,9 @@ export class Board {
         const square = this.container.querySelector(`[data-row="${row}"][data-col="${col}"]`);
         if (square) {
             square.classList.add('selected');
-            square.style.backgroundColor = '#FFD700';
+            // Add a golden border for selection
+            square.style.boxShadow = 'inset 0 0 0 4px #FFD700';
+            square.style.backgroundColor = 'rgba(255, 215, 0, 0.3)';
         }
     }
 
@@ -173,9 +184,8 @@ export class Board {
             const square = this.container.querySelector(`[data-row="${this.selectedSquare.row}"][data-col="${this.selectedSquare.col}"]`);
             if (square) {
                 square.classList.remove('selected');
-                // Restore original color
-                const isLight = (this.selectedSquare.row + this.selectedSquare.col) % 2 === 0;
-                square.style.backgroundColor = isLight ? '#F5DEB3' : '#8B4513';
+                square.style.boxShadow = '';
+                square.style.backgroundColor = 'transparent';
             }
         }
         this.selectedSquare = null;
@@ -209,23 +219,28 @@ export class Board {
         const pieceEl = document.createElement('div');
         pieceEl.className = this.getPieceClass(pieceType);
         pieceEl.style.position = 'absolute';
-        pieceEl.style.width = '50px';
-        pieceEl.style.height = '50px';
-        pieceEl.style.left = '5px';
-        pieceEl.style.top = '5px';
+        
+        // Size pieces to fit nicely in squares
+        const pieceSize = this.squareSize * 0.8; // 80% of square size
+        const offset = (this.squareSize - pieceSize) / 2; // Center the piece
+        
+        pieceEl.style.width = `${pieceSize}px`;
+        pieceEl.style.height = `${pieceSize}px`;
+        pieceEl.style.left = `${offset}px`;
+        pieceEl.style.top = `${offset}px`;
         pieceEl.style.borderRadius = '50%';
         pieceEl.style.border = '3px solid #000';
         pieceEl.style.cursor = 'grab';
         pieceEl.style.zIndex = '10';
         pieceEl.draggable = true;
         
-        // Piece styling
+        // Enhanced piece styling to look more realistic
         if (pieceType === PIECE.WHITE || pieceType === PIECE.WHITE_KING) {
-            pieceEl.style.backgroundColor = '#FFFFFF';
-            pieceEl.style.backgroundImage = 'radial-gradient(circle at 30% 30%, #fff, #ddd)';
+            pieceEl.style.background = 'radial-gradient(circle at 30% 30%, #ffffff, #e0e0e0, #c0c0c0)';
+            pieceEl.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.8)';
         } else {
-            pieceEl.style.backgroundColor = '#222222';
-            pieceEl.style.backgroundImage = 'radial-gradient(circle at 30% 30%, #444, #000)';
+            pieceEl.style.background = 'radial-gradient(circle at 30% 30%, #444444, #222222, #000000)';
+            pieceEl.style.boxShadow = '0 4px 8px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.2)';
         }
 
         // Add crown for kings
@@ -233,19 +248,20 @@ export class Board {
             const crown = document.createElement('div');
             crown.className = 'crown';
             crown.style.position = 'absolute';
-            crown.style.top = '8px';
+            crown.style.top = '20%';
             crown.style.left = '50%';
             crown.style.transform = 'translateX(-50%)';
-            crown.style.width = '24px';
-            crown.style.height = '16px';
-            crown.style.backgroundColor = '#FFD700';
-            crown.style.borderRadius = '4px 4px 0 0';
-            crown.style.border = '1px solid #B8860B';
-            crown.style.fontSize = '8px';
+            crown.style.width = '60%';
+            crown.style.height = '40%';
+            crown.style.background = 'linear-gradient(45deg, #FFD700, #FFA500)';
+            crown.style.borderRadius = '6px 6px 0 0';
+            crown.style.border = '2px solid #B8860B';
+            crown.style.fontSize = `${pieceSize * 0.25}px`;
             crown.style.textAlign = 'center';
-            crown.style.lineHeight = '16px';
+            crown.style.lineHeight = crown.style.height;
             crown.innerHTML = '♔';
             crown.style.color = '#8B4513';
+            crown.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
             pieceEl.appendChild(crown);
         }
 
@@ -270,6 +286,7 @@ export class Board {
             if (square) {
                 square.classList.add('legal-move');
                 square.style.boxShadow = 'inset 0 0 0 4px #00FF00';
+                square.style.backgroundColor = 'rgba(0, 255, 0, 0.2)';
             }
         });
     }
@@ -279,6 +296,7 @@ export class Board {
         highlighted.forEach(square => {
             square.classList.remove('legal-move');
             square.style.boxShadow = '';
+            square.style.backgroundColor = 'transparent';
         });
     }
 

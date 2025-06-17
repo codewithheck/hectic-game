@@ -2,6 +2,7 @@
  * International Draughts Game Logic Implementation
  * @author codewithheck
  * Created: 2025-06-16 19:13:41 UTC
+ * FLIPPED BOARD VERSION
  */
 
 import {
@@ -12,7 +13,8 @@ import {
     SQUARE_NUMBERS,
     FEN,
     GAME_MODE,
-    DIRECTIONS
+    DIRECTIONS,
+    isDarkSquare
 } from './constants.js';
 
 export class Game {
@@ -38,8 +40,9 @@ export class Game {
     }
 
     /**
-     * Sets up the initial position for International Draughts
+     * Sets up the initial position for International Draughts on FLIPPED BOARD
      * 20 pieces per player, only on dark squares
+     * On flipped board: dark squares are where (row + col) % 2 === 0
      */
     setupInitialPosition() {
         // Clear the board first
@@ -52,8 +55,8 @@ export class Game {
         // Place black pieces (first 4 rows, dark squares only)
         for (let row = 0; row < 4; row++) {
             for (let col = 0; col < BOARD_SIZE; col++) {
-                // Only place on dark squares (where row + col is odd)
-                if ((row + col) % 2 === 1) {
+                // Only place on dark squares (flipped board: row + col is even)
+                if (isDarkSquare(row, col)) {
                     this.pieces[row][col] = PIECE.BLACK;
                 }
             }
@@ -62,14 +65,14 @@ export class Game {
         // Place white pieces (last 4 rows, dark squares only)
         for (let row = 6; row < BOARD_SIZE; row++) {
             for (let col = 0; col < BOARD_SIZE; col++) {
-                // Only place on dark squares (where row + col is odd)
-                if ((row + col) % 2 === 1) {
+                // Only place on dark squares (flipped board: row + col is even)
+                if (isDarkSquare(row, col)) {
                     this.pieces[row][col] = PIECE.WHITE;
                 }
             }
         }
 
-        console.log('Initial position set up with 20 pieces each');
+        console.log('Initial position set up with 20 pieces each on flipped board');
     }
 
     /**
@@ -175,6 +178,11 @@ export class Game {
             return false;
         }
 
+        // Check if destination is on dark square (flipped board)
+        if (!isDarkSquare(move.to.row, move.to.col)) {
+            return false;
+        }
+
         // Check if move is in list of legal moves
         const legalMoves = this.getLegalMoves();
         return legalMoves.some(legalMove =>
@@ -263,7 +271,7 @@ export class Game {
 
             if (this.isValidPosition(newRow, newCol) &&
                 this.getPiece(newRow, newCol) === PIECE.NONE &&
-                (newRow + newCol) % 2 === 1) { // Must be on dark square
+                isDarkSquare(newRow, newCol)) { // Must be on dark square (flipped board)
                 moves.push({
                     from: { row, col },
                     to: { row: newRow, col: newCol },
@@ -342,7 +350,7 @@ export class Game {
         // Check if landing square is within bounds, empty, and on dark square
         if (!this.isValidPosition(landingRow, landingCol) ||
             this.getPiece(landingRow, landingCol) !== PIECE.NONE ||
-            (landingRow + landingCol) % 2 === 0) { // Must be on dark square
+            !isDarkSquare(landingRow, landingCol)) { // Must be on dark square (flipped board)
             return false;
         }
 
@@ -448,7 +456,7 @@ export class Game {
 
         for (let row = 0; row < BOARD_SIZE; row++) {
             for (let col = 0; col < BOARD_SIZE; col++) {
-                if ((row + col) % 2 === 1) {  // Only dark squares
+                if (isDarkSquare(row, col)) {  // Only dark squares on flipped board
                     const piece = this.getPiece(row, col);
                     const squareNumber = SQUARE_NUMBERS[row * BOARD_SIZE + col];
                     

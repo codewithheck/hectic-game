@@ -12,7 +12,8 @@ import {
     PIECE,
     PLAYER,
     BOARD_SIZE,
-    DIRECTIONS
+    DIRECTIONS,
+    isDarkSquare
 } from './constants.js';
 
 class TranspositionTable {
@@ -403,7 +404,8 @@ export class AI {
             const newCol = col + dir.dx;
 
             if (this.isValidSquare(newRow, newCol) && 
-                position.pieces[newRow][newCol] === PIECE.NONE) {
+                position.pieces[newRow][newCol] === PIECE.NONE &&
+                isDarkSquare(newRow, newCol)) { // Must be on dark square (flipped board)
                 moves.push({
                     from: { row, col },
                     to: { row: newRow, col: newCol },
@@ -430,6 +432,7 @@ export class AI {
             if (this.isValidSquare(jumpRow, jumpCol) &&
                 this.isOpponentPiece(position.pieces[captureRow][captureCol], position.currentPlayer) &&
                 position.pieces[jumpRow][jumpCol] === PIECE.NONE &&
+                isDarkSquare(jumpRow, jumpCol) && // Must be on dark square (flipped board)
                 !this.isSquareVisited(visitedSquares, jumpRow, jumpCol)) {
                 
                 captureFound = true;

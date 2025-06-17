@@ -1,9 +1,10 @@
 /**
  * International Draughts AI Engine
- * @author CodeWithHeck
- * Created: 2025-06-16 18:52:59 UTC
+ * @author codewithheck
+ * Created: 2025-06-17 05:44:46 UTC
  */
 
+import OpeningBook from '../utils/opening-book.js';
 import {
     AI_PARAMS,
     PIECE_VALUE,
@@ -11,7 +12,7 @@ import {
     PIECE,
     PLAYER,
     BOARD_SIZE,
-    SQUARE_NUMBERS
+    DIRECTIONS
 } from './constants.js';
 
 class TranspositionTable {
@@ -20,30 +21,17 @@ class TranspositionTable {
         this.maxSize = maxSize;
         this.hits = 0;
         this.misses = 0;
+        this.level = 1;
     }
 
-    /**
-     * Generates a unique key for a position
-     * @param {Object} position - The board position
-     * @returns {string} A unique hash key
-     */
     generateKey(position) {
         return position.pieces.map(row => 
             row.join('')
         ).join('') + position.currentPlayer;
     }
 
-    /**
-     * Stores a position evaluation in the cache
-     * @param {string} key - Position hash
-     * @param {number} depth - Search depth
-     * @param {number} value - Position evaluation
-     * @param {number} type - Entry type (EXACT, LOWER_BOUND, UPPER_BOUND)
-     * @param {Object} bestMove - Best move found
-     */
     store(key, depth, value, type, bestMove) {
         if (this.table.size >= this.maxSize) {
-            // Remove oldest entries if cache is full
             const oldestKey = this.table.keys().next().value;
             this.table.delete(oldestKey);
         }
@@ -57,14 +45,6 @@ class TranspositionTable {
         });
     }
 
-    /**
-     * Retrieves a cached position evaluation
-     * @param {string} key - Position hash
-     * @param {number} depth - Required search depth
-     * @param {number} alpha - Alpha value for alpha-beta pruning
-     * @param {number} beta - Beta value for alpha-beta pruning
-     * @returns {Object|null} Cached entry if valid
-     */
     lookup(key, depth, alpha, beta) {
         const entry = this.table.get(key);
         
@@ -73,7 +53,6 @@ class TranspositionTable {
             return null;
         }
 
-        // Check if entry is still valid based on retention time
         const age = Date.now() - entry.timestamp;
         if (age > AI_PARAMS.CACHE.RETENTION_TIME[this.level]) {
             this.table.delete(key);
@@ -96,9 +75,6 @@ class TranspositionTable {
         return null;
     }
 
-    /**
-     * Cleans expired entries from the cache
-     */
     cleanup() {
         const now = Date.now();
         for (const [key, entry] of this.table.entries()) {
@@ -108,9 +84,6 @@ class TranspositionTable {
         }
     }
 
-    /**
-     * Returns cache statistics
-     */
     getStats() {
         return {
             size: this.table.size,
@@ -123,51 +96,59 @@ class TranspositionTable {
 
 export class AI {
     constructor() {
-        this.level = 1; // Default to beginner
+        this.level = 1;
         this.cache = new TranspositionTable(AI_PARAMS.CACHE.MAX_SIZE);
-        this.openingBook = new Map(); // Will be initialized with opening positions
+        this.openingBook = null;
         this.nodeCount = 0;
         this.lastEvaluation = null;
-        this.initializeOpeningBook();
     }
 
-    /**
-     * Sets the AI difficulty level
-     * @param {number} level - Difficulty level (1-6)
-     */
+    async initialize() {
+        try {
+            this.openingBook = await OpeningBook.getInstance();
+            console.log('AI initialized with opening book');
+        } catch (error) {
+            console.error('Failed to initialize opening book:', error);
+            this.openingBook = null;
+        }
+    }
+
     setDifficulty(level) {
         this.level = Math.min(Math.max(1, level), 6);
         this.cache.level = this.level;
+        console.log(`AI difficulty set to level ${this.level}`);
     }
 
-    /**
-     * Gets the best move for the current position
-     * @param {Object} position - Current board position
-     * @returns {Promise<Object>} Best move found
-     */
     async getMove(position) {
         this.nodeCount = 0;
         const startTime = Date.now();
 
-        // Check opening book first
-        if (this.isInOpeningBook(position)) {
-            return this.getOpeningBookMove(position);
+        if (this.openingBook && this.isInOpeningBook(position)) {
+            const bookMove = this.getOpeningBookMove(position);
+            if (bookMove) {
+                console.log('Using opening book move');
+                return bookMove;
+            }
         }
 
-        // Start iterative deepening
         let bestMove = null;
         let bestScore = -Infinity;
         const maxDepth = AI_PARAMS.MAX_DEPTH[this.level];
 
         for (let depth = 1; depth <= maxDepth; depth++) {
             const result = await this.iterativeSearch(position, depth, startTime);
-            if (result.timeout) break;
+            if (result.timeout) {
+                console.log(`Search timeout at depth ${depth}`);
+                break;
+            }
 
             bestMove = result.move;
             bestScore = result.score;
 
-            // Check if we should continue searching based on time and complexity
-            if (!this.shouldContinueSearch(startTime, position)) break;
+            if (!this.shouldContinueSearch(startTime, position)) {
+                console.log(`Stopping search at depth ${depth}`);
+                break;
+            }
         }
 
         this.lastEvaluation = {
@@ -180,30 +161,20 @@ export class AI {
         return bestMove;
     }
 
-    /**
-     * Performs iterative deepening search
-     * @param {Object} position - Current position
-     * @param {number} depth - Current depth
-     * @param {number} startTime - Search start time
-     * @returns {Object} Best move and score
-     */
     async iterativeSearch(position, depth, startTime) {
         const alpha = -Infinity;
         const beta = Infinity;
         let bestMove = null;
         let bestScore = -Infinity;
 
-        // Check time allocation
         if (this.isTimeExceeded(startTime, position)) {
             return { move: bestMove, score: bestScore, timeout: true };
         }
 
-        // Allow UI updates every 1000 nodes
         if (this.nodeCount % 1000 === 0) {
             await new Promise(resolve => setTimeout(resolve, 0));
         }
 
-        // Check transposition table
         const key = this.cache.generateKey(position);
         const cachedResult = this.cache.lookup(key, depth, alpha, beta);
         if (cachedResult) {
@@ -229,7 +200,6 @@ export class AI {
             if (alpha >= beta) break;
         }
 
-        // Store result in transposition table
         this.cache.store(key, depth, bestScore, 
             bestScore <= alpha ? AI_PARAMS.CACHE.ENTRY_TYPES.UPPER_BOUND :
             bestScore >= beta ? AI_PARAMS.CACHE.ENTRY_TYPES.LOWER_BOUND :
@@ -240,31 +210,19 @@ export class AI {
         return { move: bestMove, score: bestScore, timeout: false };
     }
 
-    /**
-     * Negamax algorithm with alpha-beta pruning
-     * @param {Object} position - Current position
-     * @param {number} depth - Remaining depth
-     * @param {number} alpha - Alpha value
-     * @param {number} beta - Beta value
-     * @param {number} startTime - Search start time
-     * @returns {number} Position evaluation
-     */
     negamax(position, depth, alpha, beta, startTime) {
         this.nodeCount++;
 
-        // Check time allocation
         if (this.isTimeExceeded(startTime, position)) {
             return 0;
         }
 
-        // Check transposition table
         const key = this.cache.generateKey(position);
         const cachedResult = this.cache.lookup(key, depth, alpha, beta);
         if (cachedResult) {
             return cachedResult.value;
         }
 
-        // Leaf node evaluation
         if (depth === 0) {
             return this.quiescenceSearch(position, alpha, beta, 
                 AI_PARAMS.QUIESCENCE_DEPTH[this.level], startTime);
@@ -272,9 +230,8 @@ export class AI {
 
         const moves = this.generateMoves(position);
         
-        // Check for game end
         if (moves.length === 0) {
-            return -Infinity; // Loss
+            return -Infinity;
         }
 
         let bestScore = -Infinity;
@@ -288,7 +245,6 @@ export class AI {
             if (alpha >= beta) break;
         }
 
-        // Store position in cache
         this.cache.store(key, depth, bestScore,
             bestScore <= alpha ? AI_PARAMS.CACHE.ENTRY_TYPES.UPPER_BOUND :
             bestScore >= beta ? AI_PARAMS.CACHE.ENTRY_TYPES.LOWER_BOUND :
@@ -299,19 +255,9 @@ export class AI {
         return bestScore;
     }
 
-    /**
-     * Quiescence search to evaluate tactical positions
-     * @param {Object} position - Current position
-     * @param {number} alpha - Alpha value
-     * @param {number} beta - Beta value
-     * @param {number} depth - Maximum quiescence depth
-     * @param {number} startTime - Search start time
-     * @returns {number} Position evaluation
-     */
     quiescenceSearch(position, alpha, beta, depth, startTime) {
         this.nodeCount++;
 
-        // Standing pat
         const standPat = this.evaluatePosition(position);
         if (standPat >= beta) return beta;
         alpha = Math.max(alpha, standPat);
@@ -320,7 +266,6 @@ export class AI {
             return standPat;
         }
 
-        // Only consider capture moves
         const captureMoves = this.generateCaptureMoves(position);
         
         for (const move of captureMoves) {
@@ -334,22 +279,15 @@ export class AI {
         return alpha;
     }
 
-    /**
-     * Evaluates a position
-     * @param {Object} position - Position to evaluate
-     * @returns {number} Evaluation score
-     */
     evaluatePosition(position) {
         let score = 0;
 
-        // Material evaluation
         for (let i = 0; i < BOARD_SIZE; i++) {
             for (let j = 0; j < BOARD_SIZE; j++) {
                 const piece = position.pieces[i][j];
                 if (piece !== PIECE.NONE) {
                     score += PIECE_VALUE[piece];
                     
-                    // Position evaluation
                     const isCenter = (i >= 3 && i <= 6) && (j >= 3 && j <= 6);
                     const isEdge = i === 0 || i === 9 || j === 0 || j === 9;
                     const isBackRow = (piece === PIECE.WHITE && i === 9) || 
@@ -368,12 +306,6 @@ export class AI {
         return position.currentPlayer === PLAYER.WHITE ? score : -score;
     }
 
-    /**
-     * Checks if more time should be spent on the position
-     * @param {number} startTime - Search start time
-     * @param {Object} position - Current position
-     * @returns {boolean} Whether to continue searching
-     */
     shouldContinueSearch(startTime, position) {
         const elapsed = Date.now() - startTime;
         const baseTime = AI_PARAMS.ITERATIVE_DEEPENING.TIME_ALLOCATION[this.level];
@@ -383,11 +315,6 @@ export class AI {
         return elapsed < maxTime * complexity;
     }
 
-    /**
-     * Assesses position complexity
-     * @param {Object} position - Position to assess
-     * @returns {number} Complexity factor (0.5-1.5)
-     */
     assessPositionComplexity(position) {
         const moves = this.generateMoves(position);
         const captures = moves.filter(move => move.captures.length > 0);
@@ -395,84 +322,39 @@ export class AI {
         
         let complexity = 1.0;
         
-        // More complex if many captures available
         if (captures.length > 2) complexity += 0.2;
-        
-        // More complex in endgame positions
         if (materialCount < 10) complexity += 0.3;
-        
-        // More complex with many possible moves
         if (moves.length > 15) complexity += 0.2;
         
         return Math.min(1.5, complexity);
     }
 
-    /**
-     * Initializes the opening book
-     */
-    initializeOpeningBook() {
-        // Implementation of opening book initialization
-        // This would load pre-calculated positions and their evaluated best moves
-    }
-
-    /**
-     * Checks if a position is in the opening book
-     * @param {Object} position - Position to check
-     * @returns {boolean} Whether position is in book
-     */
     isInOpeningBook(position) {
-        const key = this.cache.generateKey(position);
-        return this.openingBook.has(key);
+        return this.openingBook && this.openingBook.getOpeningMoves(position).length > 0;
     }
 
-    /**
-     * Gets a move from the opening book
-     * @param {Object} position - Current position
-     * @returns {Object} Selected book move
-     */
     getOpeningBookMove(position) {
-        const key = this.cache.generateKey(position);
-        const bookMoves = this.openingBook.get(key);
+        if (!this.openingBook) return null;
         
-        // Apply randomization based on level
+        const moves = this.openingBook.getOpeningMoves(position);
+        if (!moves.length) return null;
+
         const randomization = AI_PARAMS.OPENING_BOOK.RANDOMIZATION[this.level];
         if (Math.random() < randomization) {
-            return bookMoves[Math.floor(Math.random() * bookMoves.length)];
+            return moves[Math.floor(Math.random() * moves.length)];
         }
         
-        // Otherwise return the best book move
-        return bookMoves[0];
+        return moves[0];
     }
 
-    /**
-     * Gets the last evaluation statistics
-     * @returns {Object} Evaluation statistics
-     */
-    getLastEvaluation() {
-        return this.lastEvaluation;
-    }
-
-    // Additional helper methods would be implemented here:
-    // - generateMoves()
-    // - generateCaptureMoves()
-    // - makeMove()
-    // - countMaterial()
-    // - isTimeExceeded()
-        /**
-     * Generates all legal moves for the current position
-     * @param {Object} position - Current position
-     * @returns {Array} Array of legal moves
-     */
     generateMoves(position) {
         const moves = [];
         const captures = this.generateCaptureMoves(position);
         
-        // If captures are available, they are mandatory
         if (captures.length > 0) {
             return captures;
         }
 
-        // Generate normal moves if no captures are available
         for (let i = 0; i < BOARD_SIZE; i++) {
             for (let j = 0; j < BOARD_SIZE; j++) {
                 const piece = position.pieces[i][j];
@@ -485,11 +367,6 @@ export class AI {
         return moves;
     }
 
-    /**
-     * Generates all capture moves for the current position
-     * @param {Object} position - Current position
-     * @returns {Array} Array of capture moves
-     */
     generateCaptureMoves(position) {
         const captures = [];
         
@@ -502,10 +379,8 @@ export class AI {
             }
         }
 
-        // Sort captures by length (most captures first)
         captures.sort((a, b) => b.captures.length - a.captures.length);
 
-        // If maximum capture rule is in effect, only return longest captures
         if (captures.length > 0) {
             const maxLength = captures[0].captures.length;
             return captures.filter(move => move.captures.length === maxLength);
@@ -514,13 +389,6 @@ export class AI {
         return captures;
     }
 
-    /**
-     * Adds all possible normal moves for a piece
-     * @param {Array} moves - Array to add moves to
-     * @param {Object} position - Current position
-     * @param {number} row - Starting row
-     * @param {number} col - Starting column
-     */
     addNormalMovesForPiece(moves, position, row, col) {
         const piece = position.pieces[row][col];
         const directions = piece === PIECE.WHITE_KING || piece === PIECE.BLACK_KING ?
@@ -542,15 +410,6 @@ export class AI {
         }
     }
 
-    /**
-     * Recursively adds all possible capture moves for a piece
-     * @param {Array} captures - Array to add captures to
-     * @param {Object} position - Current position
-     * @param {number} row - Current row
-     * @param {number} col - Current column
-     * @param {Array} currentCaptures - Captures made so far
-     * @param {Array} visitedSquares - Squares visited in this sequence
-     */
     addCaptureMovesForPiece(captures, position, row, col, currentCaptures, visitedSquares) {
         const piece = position.pieces[row][col];
         const directions = piece === PIECE.WHITE_KING || piece === PIECE.BLACK_KING ?
@@ -572,14 +431,12 @@ export class AI {
                 
                 captureFound = true;
 
-                // Make the capture
                 const newPosition = this.makeMove(position, {
                     from: { row, col },
                     to: { row: jumpRow, col: jumpCol },
                     captures: [...currentCaptures, { row: captureRow, col: captureCol }]
                 });
 
-                // Continue looking for more captures
                 this.addCaptureMovesForPiece(
                     captures,
                     newPosition,
@@ -591,7 +448,6 @@ export class AI {
             }
         }
 
-        // If no more captures possible, add the sequence
         if (!captureFound && currentCaptures.length > 0) {
             captures.push({
                 from: { row: visitedSquares[0].row, col: visitedSquares[0].col },
@@ -601,12 +457,6 @@ export class AI {
         }
     }
 
-    /**
-     * Makes a move on a position
-     * @param {Object} position - Current position
-     * @param {Object} move - Move to make
-     * @returns {Object} New position after move
-     */
     makeMove(position, move) {
         const newPosition = {
             pieces: position.pieces.map(row => [...row]),
@@ -617,12 +467,10 @@ export class AI {
         newPosition.pieces[move.from.row][move.from.col] = PIECE.NONE;
         newPosition.pieces[move.to.row][move.to.col] = piece;
 
-        // Remove captured pieces
         for (const capture of move.captures) {
             newPosition.pieces[capture.row][capture.col] = PIECE.NONE;
         }
 
-        // Handle promotions
         if (this.shouldPromote(piece, move.to.row)) {
             newPosition.pieces[move.to.row][move.to.col] = 
                 piece === PIECE.WHITE ? PIECE.WHITE_KING : PIECE.BLACK_KING;
@@ -631,11 +479,6 @@ export class AI {
         return newPosition;
     }
 
-    /**
-     * Counts total material on the board
-     * @param {Object} position - Position to evaluate
-     * @returns {number} Total piece count
-     */
     countMaterial(position) {
         let count = 0;
         for (let i = 0; i < BOARD_SIZE; i++) {
@@ -648,12 +491,6 @@ export class AI {
         return count;
     }
 
-    /**
-     * Checks if time allocated for search has been exceeded
-     * @param {number} startTime - Search start time
-     * @param {Object} position - Current position
-     * @returns {boolean} Whether time is exceeded
-     */
     isTimeExceeded(startTime, position) {
         const elapsed = Date.now() - startTime;
         const baseTime = AI_PARAMS.ITERATIVE_DEEPENING.TIME_ALLOCATION[this.level];
@@ -663,22 +500,10 @@ export class AI {
         return elapsed >= maxTime * complexity;
     }
 
-    /**
-     * Helper method to check if a square is valid
-     * @param {number} row - Row to check
-     * @param {number} col - Column to check
-     * @returns {boolean} Whether square is valid
-     */
     isValidSquare(row, col) {
         return row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
     }
 
-    /**
-     * Helper method to check if a piece belongs to current player
-     * @param {number} piece - Piece to check
-     * @param {number} currentPlayer - Current player
-     * @returns {boolean} Whether piece belongs to current player
-     */
     isPieceOfCurrentPlayer(piece, currentPlayer) {
         if (currentPlayer === PLAYER.WHITE) {
             return piece === PIECE.WHITE || piece === PIECE.WHITE_KING;
@@ -687,12 +512,6 @@ export class AI {
         }
     }
 
-    /**
-     * Helper method to check if a piece belongs to opponent
-     * @param {number} piece - Piece to check
-     * @param {number} currentPlayer - Current player
-     * @returns {boolean} Whether piece belongs to opponent
-     */
     isOpponentPiece(piece, currentPlayer) {
         if (currentPlayer === PLAYER.WHITE) {
             return piece === PIECE.BLACK || piece === PIECE.BLACK_KING;
@@ -701,25 +520,16 @@ export class AI {
         }
     }
 
-    /**
-     * Helper method to check if a square has been visited
-     * @param {Array} visitedSquares - Array of visited squares
-     * @param {number} row - Row to check
-     * @param {number} col - Column to check
-     * @returns {boolean} Whether square has been visited
-     */
     isSquareVisited(visitedSquares, row, col) {
         return visitedSquares.some(square => square.row === row && square.col === col);
     }
 
-    /**
-     * Helper method to check if a piece should be promoted
-     * @param {number} piece - Piece to check
-     * @param {number} row - Row where piece landed
-     * @returns {boolean} Whether piece should be promoted
-     */
     shouldPromote(piece, row) {
         return (piece === PIECE.WHITE && row === 0) || 
                (piece === PIECE.BLACK && row === BOARD_SIZE - 1);
+    }
+
+    getLastEvaluation() {
+        return this.lastEvaluation;
     }
 }

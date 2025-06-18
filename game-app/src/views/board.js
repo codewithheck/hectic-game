@@ -269,11 +269,7 @@ export class Board {
         pieceEl.style.zIndex = '10';
         pieceEl.draggable = true;
         
-        // Make the piece circular to crop black backgrounds
-        pieceEl.style.borderRadius = '50%';
-        pieceEl.style.overflow = 'hidden';
-        
-        // Use piece images instead of CSS styling
+        // Use piece images with black background removal
         let imageUrl = '';
         switch (pieceType) {
             case PIECE.WHITE:
@@ -290,30 +286,43 @@ export class Board {
                 break;
         }
         
-        // Apply the piece image with background removal
+        // Apply the piece image preserving full cylindrical shape
         pieceEl.style.backgroundImage = `url("${imageUrl}")`;
-        pieceEl.style.backgroundSize = 'cover'; // Changed from 'contain' to 'cover' for better cropping
+        pieceEl.style.backgroundSize = 'contain';
         pieceEl.style.backgroundRepeat = 'no-repeat';
         pieceEl.style.backgroundPosition = 'center';
         
-        // Remove black background using CSS filters and blend modes
-        pieceEl.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+        // Remove black background while preserving piece shape
+        // Method 1: CSS filters to make black transparent
+        pieceEl.style.filter = `
+            drop-shadow(0 2px 4px rgba(0,0,0,0.3))
+            contrast(1.1)
+            brightness(1.05)
+        `;
         
-        // Create a mask to hide black backgrounds
-        pieceEl.style.WebkitMaskImage = 'radial-gradient(circle, white 45%, transparent 50%)';
-        pieceEl.style.maskImage = 'radial-gradient(circle, white 45%, transparent 50%)';
+        // Method 2: Mix blend mode to blend with board (removes black)
+        pieceEl.style.mixBlendMode = 'multiply';
         
-        // Alternative approach: use mix-blend-mode to blend with board
-        // pieceEl.style.mixBlendMode = 'multiply';
+        // Method 3: Alternative - use screen blend mode
+        // pieceEl.style.mixBlendMode = 'screen';
         
-        // Optional: Add hover effect
+        // Add hover effects that preserve the cylindrical shape
         pieceEl.onmouseenter = () => {
-            pieceEl.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.4)) brightness(1.1)';
-            pieceEl.style.transform = 'scale(1.05)';
+            pieceEl.style.filter = `
+                drop-shadow(0 4px 8px rgba(0,0,0,0.4))
+                contrast(1.2)
+                brightness(1.1)
+                saturate(1.1)
+            `;
+            pieceEl.style.transform = 'translateY(-2px)'; // Slight lift effect instead of scale
         };
         pieceEl.onmouseleave = () => {
-            pieceEl.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
-            pieceEl.style.transform = 'scale(1)';
+            pieceEl.style.filter = `
+                drop-shadow(0 2px 4px rgba(0,0,0,0.3))
+                contrast(1.1)
+                brightness(1.05)
+            `;
+            pieceEl.style.transform = 'translateY(0px)';
         };
 
         square.appendChild(pieceEl);

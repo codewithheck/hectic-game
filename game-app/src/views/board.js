@@ -269,6 +269,10 @@ export class Board {
         pieceEl.style.zIndex = '10';
         pieceEl.draggable = true;
         
+        // Make the piece circular to crop black backgrounds
+        pieceEl.style.borderRadius = '50%';
+        pieceEl.style.overflow = 'hidden';
+        
         // Use piece images instead of CSS styling
         let imageUrl = '';
         switch (pieceType) {
@@ -286,21 +290,30 @@ export class Board {
                 break;
         }
         
-        // Apply the piece image
+        // Apply the piece image with background removal
         pieceEl.style.backgroundImage = `url("${imageUrl}")`;
-        pieceEl.style.backgroundSize = 'contain';
+        pieceEl.style.backgroundSize = 'cover'; // Changed from 'contain' to 'cover' for better cropping
         pieceEl.style.backgroundRepeat = 'no-repeat';
         pieceEl.style.backgroundPosition = 'center';
         
-        // Add subtle shadow for depth
+        // Remove black background using CSS filters and blend modes
         pieceEl.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+        
+        // Create a mask to hide black backgrounds
+        pieceEl.style.WebkitMaskImage = 'radial-gradient(circle, white 45%, transparent 50%)';
+        pieceEl.style.maskImage = 'radial-gradient(circle, white 45%, transparent 50%)';
+        
+        // Alternative approach: use mix-blend-mode to blend with board
+        // pieceEl.style.mixBlendMode = 'multiply';
         
         // Optional: Add hover effect
         pieceEl.onmouseenter = () => {
             pieceEl.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.4)) brightness(1.1)';
+            pieceEl.style.transform = 'scale(1.05)';
         };
         pieceEl.onmouseleave = () => {
             pieceEl.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+            pieceEl.style.transform = 'scale(1)';
         };
 
         square.appendChild(pieceEl);

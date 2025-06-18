@@ -35,7 +35,7 @@ function createPositioningTool() {
                 <button onclick="adjustBorderSize(2)" style="padding: 5px 8px; border: 1px solid #dc3545; background: white; cursor: pointer; border-radius: 3px;">+ 2px</button>
             </div>
             <div style="font-size: 12px; color: #666;">
-                Current border: <span id="border-size">30</span>px, Square size: <span id="square-size">54</span>px
+                Current border: <span id="border-size">14</span>px, Square size: <span id="square-size">57.2</span>px
             </div>
         </div>
 
@@ -48,7 +48,7 @@ function createPositioningTool() {
                 <button onclick="adjustPieces(0, 1)" style="padding: 5px 8px; border: 1px solid #007bff; background: white; cursor: pointer; border-radius: 3px;">Y ↓</button>
             </div>
             <div style="font-size: 12px; color: #666;">
-                Piece offset: X=<span id="piece-x">0</span>, Y=<span id="piece-y">0</span>
+                Piece offset: X=<span id="piece-x">-2</span>, Y=<span id="piece-y">-2</span>
             </div>
         </div>
 
@@ -80,10 +80,10 @@ function createPositioningTool() {
     document.body.appendChild(toolPanel);
 }
 
-// Global variables
-let currentPieceX = 0;
-let currentPieceY = 0;
-let currentBorderSize = 30;
+// Global variables - starting with perfect values
+let currentPieceX = -2;  // Perfect X offset
+let currentPieceY = -2;  // Perfect Y offset  
+let currentBorderSize = 14;  // Perfect border size
 let squareBordersVisible = false;
 
 // Adjust border size (this is the main adjustment!)
@@ -130,13 +130,13 @@ window.toggleSquareBorders = function() {
 
 // Reset positions
 window.resetPositions = function() {
-    currentPieceX = 0;
-    currentPieceY = 0;
-    currentBorderSize = 30;
+    currentPieceX = -2;  // Reset to perfect values
+    currentPieceY = -2;
+    currentBorderSize = 14;
     
     if (window.game && window.game.board) {
-        window.game.board.adjustBorderSize(30);
-        window.game.board.adjustPiecePositioning(0, 0);
+        window.game.board.adjustBorderSize(14);
+        window.game.board.adjustPiecePositioning(-2, -2);
     }
     
     if (squareBordersVisible) {
@@ -144,7 +144,7 @@ window.resetPositions = function() {
     }
     
     updateDisplayValues();
-    console.log('All positions reset to default');
+    console.log('All positions reset to perfect values');
 }
 
 // Show perfect values

@@ -265,40 +265,43 @@ export class Board {
         pieceEl.style.height = `${pieceSize}px`;
         pieceEl.style.left = `${finalOffsetX}px`;
         pieceEl.style.top = `${finalOffsetY}px`;
-        pieceEl.style.borderRadius = '50%';
-        pieceEl.style.border = '3px solid #000';
         pieceEl.style.cursor = 'grab';
         pieceEl.style.zIndex = '10';
         pieceEl.draggable = true;
         
-        if (pieceType === PIECE.WHITE || pieceType === PIECE.WHITE_KING) {
-            pieceEl.style.background = 'radial-gradient(circle at 30% 30%, #ffffff, #e0e0e0, #c0c0c0)';
-            pieceEl.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.8)';
-        } else {
-            pieceEl.style.background = 'radial-gradient(circle at 30% 30%, #444444, #222222, #000000)';
-            pieceEl.style.boxShadow = '0 4px 8px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.2)';
+        // Use piece images instead of CSS styling
+        let imageUrl = '';
+        switch (pieceType) {
+            case PIECE.WHITE:
+                imageUrl = 'assets/images/white_piece.png';
+                break;
+            case PIECE.BLACK:
+                imageUrl = 'assets/images/black_piece.png';
+                break;
+            case PIECE.WHITE_KING:
+                imageUrl = 'assets/images/white_king.png';
+                break;
+            case PIECE.BLACK_KING:
+                imageUrl = 'assets/images/black_king.png';
+                break;
         }
-
-        if (pieceType === PIECE.WHITE_KING || pieceType === PIECE.BLACK_KING) {
-            const crown = document.createElement('div');
-            crown.className = 'crown';
-            crown.style.position = 'absolute';
-            crown.style.top = '20%';
-            crown.style.left = '50%';
-            crown.style.transform = 'translateX(-50%)';
-            crown.style.width = '60%';
-            crown.style.height = '40%';
-            crown.style.background = 'linear-gradient(45deg, #FFD700, #FFA500)';
-            crown.style.borderRadius = '6px 6px 0 0';
-            crown.style.border = '2px solid #B8860B';
-            crown.style.fontSize = `${pieceSize * 0.25}px`;
-            crown.style.textAlign = 'center';
-            crown.style.lineHeight = crown.style.height;
-            crown.innerHTML = '♔';
-            crown.style.color = '#8B4513';
-            crown.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
-            pieceEl.appendChild(crown);
-        }
+        
+        // Apply the piece image
+        pieceEl.style.backgroundImage = `url("${imageUrl}")`;
+        pieceEl.style.backgroundSize = 'contain';
+        pieceEl.style.backgroundRepeat = 'no-repeat';
+        pieceEl.style.backgroundPosition = 'center';
+        
+        // Add subtle shadow for depth
+        pieceEl.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+        
+        // Optional: Add hover effect
+        pieceEl.onmouseenter = () => {
+            pieceEl.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.4)) brightness(1.1)';
+        };
+        pieceEl.onmouseleave = () => {
+            pieceEl.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+        };
 
         square.appendChild(pieceEl);
     }

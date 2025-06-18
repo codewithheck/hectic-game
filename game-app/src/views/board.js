@@ -1,7 +1,7 @@
 /**
  * Board class for hectic-game
  * Fixed for wooden board with decorative borders
- * FLIPPED BOARD VERSION
+ * FLIPPED BOARD VERSION - PERFECT VALUES
  */
 
 import { BOARD_SIZE, PIECE, isDarkSquare } from '../engine/constants.js';
@@ -14,17 +14,17 @@ export class Board {
         this.selectedSquare = null;
         this.highlightedSquares = [];
         
-        // Wooden board configuration
+        // Wooden board configuration - PERFECT VALUES FOUND!
         this.totalBoardSize = 600; // Total board image size
         
-        // Adjustable parameters for your wooden board
-        this.borderSize = 30; // Decorative border width (adjust this!)
+        // Perfect values for your wooden board
+        this.borderSize = 14; // Perfect decorative border width
         this.playingAreaSize = this.totalBoardSize - (this.borderSize * 2); // Actual playing area
         this.squareSize = this.playingAreaSize / BOARD_SIZE; // Size of each square
         
-        // Fine-tuning offsets
-        this.pieceOffsetX = 0;
-        this.pieceOffsetY = 0;
+        // Perfect fine-tuning offsets
+        this.pieceOffsetX = -2; // Perfect horizontal offset
+        this.pieceOffsetY = -2; // Perfect vertical offset
         
         console.log(`Board config: Total=${this.totalBoardSize}px, Border=${this.borderSize}px, Playing area=${this.playingAreaSize}px, Square size=${this.squareSize}px`);
     }
